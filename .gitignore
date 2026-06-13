@@ -1,0 +1,32 @@
+# Real config (only the .example is tracked)
+config/ticket-master.config.json
+
+# Ticket lifecycle directories — keep .gitkeep, ignore everything else
+tickets/QUEUED/*
+!tickets/QUEUED/.gitkeep
+tickets/PENDING/*
+!tickets/PENDING/.gitkeep
+tickets/SOLVED/*
+!tickets/SOLVED/.gitkeep
+tickets/.USER/*
+!tickets/.USER/.gitkeep
+
+# Local intake log variant
+tickets/INTAKE-TRIAGE-LOG.local.txt
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+dist/
+build/
+
+# Node
+node_modules/
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini

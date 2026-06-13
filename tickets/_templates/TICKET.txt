@@ -1,0 +1,56 @@
+==============================================================
+TICKET
+==============================================================
+ID:            T-YYYYMMDD-NN          (date + sequential number)
+TITLE:         <short problem title>
+CREATED:       YYYY-MM-DD
+STATUS:        OPEN | QUEUED | PENDING | .USER | SOLVED
+PRIORITY:      low | medium | high | critical
+
+--------------------------------------------------------------
+PROJECT ASSIGNMENT
+--------------------------------------------------------------
+PIPELINE:      <e.g. software / research / docs / infra / ...>
+PROJECT_DIR:   <relative or absolute path, or project name>
+CONTROL_FILE:  <CLAUDE.md / README.md / START.md that confirmed GATE1>
+
+--------------------------------------------------------------
+PROBLEM DESCRIPTION
+--------------------------------------------------------------
+<What is the problem or change request?
+ Observed behaviour, expected behaviour, reproduction steps,
+ affected files — as much detail as needed.>
+
+--------------------------------------------------------------
+TASK CHARACTERISTICS  (Processing chain steps 2–3)
+--------------------------------------------------------------
+TYPE:          <Bug / Feature / Docs / Research / Review / Refactor>
+REQUIREMENTS:  <Clarity, Complexity, Creativity, Context, Criticality>
+SCORE:         <0–50 per score formula in TICKET-MASTER.md section (c)>
+
+--------------------------------------------------------------
+MODEL ROUTING  (Processing chain steps 4–5)
+--------------------------------------------------------------
+CANDIDATE 1:   <model + invocation>     [LLM-launchable: yes/no]
+CANDIDATE 2:   <model + invocation>     [LLM-launchable: yes/no]
+CANDIDATE 3:   <model + invocation>     [LLM-launchable: yes/no]
+CHOSEN:        <candidate + rationale>
+
+--------------------------------------------------------------
+TASK PROMPT  (for sub-agent; includes routing + root docs to read)
+--------------------------------------------------------------
+<Concrete work order that can be passed as a prompt.
+ MUST include project routing + instruction to read the relevant
+ pipeline root documents before starting.>
+
+--------------------------------------------------------------
+HISTORY / LOG
+--------------------------------------------------------------
+YYYY-MM-DD  Created.
+YYYY-MM-DD  ...
+
+--------------------------------------------------------------
+SOLUTION / RESULT  (fill before moving to SOLVED/)
+--------------------------------------------------------------
+<What was done, by whom / which model, empirical confirmation.>
+==============================================================

@@ -1,0 +1,11 @@
+# INTAKE-TRIAGE-LOG
+# One line per incoming ticket at intake (lightweight audit trail).
+# Full ticket .txt only for: delegated-with-tracking / PENDING / deferred /
+# multi-step across sessions / audit-relevant.
+# Trivial + immediately done + verified -> log line only.
+#
+# Format:
+# Date | ID | Short description | Project | Route | Result
+#   Route:   self | companion:<name> | new-sub:<model> | defer->File | .USER
+#   Result:  done <hash> | queued | pending | logged
+# ============================================================================

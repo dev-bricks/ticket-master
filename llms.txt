@@ -1,0 +1,55 @@
+## Last-checked: 2026-06-14
+
+# ticket-master
+
+ticket-master is a cross-platform, multi-provider ticket router agent for software
+projects. It keeps an LLM session open as a lean, long-lived router: incoming bug
+reports and change requests are captured as structured ticket files, scored on five
+dimensions, matched to the best available CLI provider (Claude, Codex, agy/Gemini),
+and delegated via a processing chain with a graceful fallback.
+
+Canonical repository: https://github.com/dev-bricks/ticket-master
+
+## Useful Entry Points
+
+- `README.md`: user-facing overview, quickstart, starter matrix, routing explanation.
+- `README_de.md`: German documentation.
+- `prompts/TICKET-MASTER.md`: the anonymised agent prompt — defines the full
+  routing protocol (lean router principle, companion pattern, decision ladder,
+  score formula, processing chain A/B/C, position 0).
+- `config/ticket-master.config.example.json`: all configuration fields documented.
+- `tickets/_templates/TICKET.txt`: structured ticket template.
+- `tickets/INTAKE-TRIAGE-LOG.txt`: one-line-per-ticket audit trail.
+- `bin/ticket-master.sh` / `bin/ticket-master.bat` / `bin/ticket-master.ps1`:
+  cross-platform starters.
+- `tests/test_smoke.py`: structure, JSON validity, and anonymisation checks.
+
+## Run
+
+```bash
+cp config/ticket-master.config.example.json config/ticket-master.config.json
+# edit config: add project_roots, verify provider commands
+./bin/ticket-master.sh               # Unix/macOS, default provider: claude
+.\bin\ticket-master.bat              # Windows CMD
+.\bin\ticket-master.ps1              # Windows PowerShell
+```
+
+## Audience
+
+- **Developers** managing bugs and change requests across multiple projects who
+  want a structured, auditable routing layer.
+- **AI engineers** building multi-provider LLM workflows with graceful fallback.
+- **Teams** that use Claude, Codex, or Gemini CLI and want a persistent session
+  router without custom infrastructure.
+
+## Search Phrases
+
+```
+LLM ticket router agent
+multi-provider AI ticket routing
+Claude Codex Gemini CLI agent router
+cross-platform LLM agent starter
+score-based AI provider selection
+companion pattern LLM session
+ticket-master dev-bricks
+```
