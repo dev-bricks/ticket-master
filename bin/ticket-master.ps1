@@ -6,10 +6,20 @@ param(
 
 $ScriptDir  = $PSScriptRoot
 $RepoRoot   = Resolve-Path (Join-Path $ScriptDir "..")
-$PromptFile = Join-Path $RepoRoot "prompts\TICKET-MASTER.md"
+
+# Language selection: TM_LANG (default "en"). Falls back to "en" if the file is missing.
+$Lang = if ($env:TM_LANG) { $env:TM_LANG } else { "en" }
+$PromptFile = Join-Path $RepoRoot "prompts\TICKET-MASTER.$Lang.md"
+if (-not (Test-Path $PromptFile)) {
+    [Console]::Error.WriteLine("WARNING: prompt file for language '$Lang' not found; falling back to 'en'.")
+    $Lang = "en"
+    $PromptFile = Join-Path $RepoRoot "prompts\TICKET-MASTER.en.md"
+}
+
 $Bootstrap  = "Read and follow the instructions in $PromptFile - start at step (a) and work down to Position 0."
 
 Write-Host "[ticket-master] Starting provider: $Provider"
+Write-Host "[ticket-master] Language: $Lang"
 Write-Host "[ticket-master] Repo root: $RepoRoot"
 
 Set-Location $RepoRoot

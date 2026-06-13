@@ -4,6 +4,9 @@
   "tickets_dir": "./tickets",
   "prompts_dir": "./prompts",
 
+  "_comment_language": "Prompt language. The bin/ starters load prompts/TICKET-MASTER.<lang>.md. Override at runtime with the TM_LANG environment variable. Falls back to 'en' if the requested file is missing.",
+  "default_language": "en",
+
   "project_roots": [
     {
       "_comment": "Add your own project directories here.",

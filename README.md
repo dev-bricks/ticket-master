@@ -1,3 +1,5 @@
+<p align="center"><img src="assets/logo.svg" alt="ticket-master" width="160"></p>
+
 # ticket-master
 
 A cross-platform, multi-provider **ticket router agent** for software projects.
@@ -9,7 +11,7 @@ delegates accordingly — or routes it to the project's own task management when
 delegation is not appropriate.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)](VERSION)
+[![Version](https://img.shields.io/badge/version-1.1.0-blue.svg)](VERSION)
 
 ---
 
@@ -73,8 +75,30 @@ cp config/ticket-master.config.example.json config/ticket-master.config.json
 .\bin\ticket-master.ps1              # Windows PowerShell
 ```
 
-The agent reads `prompts/TICKET-MASTER.md`, orients itself on your projects, and
-goes to **Position 0** — waiting silently for your first ticket.
+The agent reads the prompt file for the selected language
+(`prompts/TICKET-MASTER.<lang>.md`, default English), orients itself on your
+projects, and goes to **Position 0** — waiting silently for your first ticket.
+
+### Prompt Language
+
+The agent prompt ships in two fully equivalent versions:
+
+- `prompts/TICKET-MASTER.en.md` (English, default)
+- `prompts/TICKET-MASTER.de.md` (German)
+
+Select the language with the `TM_LANG` environment variable; the starters load
+`prompts/TICKET-MASTER.${TM_LANG}.md` and fall back to English with a warning if
+the requested file is missing. The config field `default_language` documents the
+intended default.
+
+```bash
+TM_LANG=de ./bin/ticket-master.sh        # German prompt
+TM_LANG=en ./bin/ticket-master.sh        # English prompt (default)
+```
+
+```powershell
+$env:TM_LANG = "de"; .\bin\ticket-master.ps1
+```
 
 ---
 
@@ -97,6 +121,7 @@ goes to **Position 0** — waiting silently for your first ticket.
 | Variable | Default | Effect |
 |----------|---------|--------|
 | `TM_PROVIDER` | `claude` | Override provider without a flag |
+| `TM_LANG` | `en` | Prompt language; loads `prompts/TICKET-MASTER.${TM_LANG}.md` (falls back to `en`) |
 | `TM_SKIP_PERMISSIONS` | `0` | Set to `1` to pass `--dangerously-skip-permissions` to Claude |
 
 ---
@@ -112,6 +137,7 @@ Copy `config/ticket-master.config.example.json` to
 |-------|-------------|
 | `tickets_dir` | Where ticket files live (default: `./tickets`) |
 | `prompts_dir` | Where prompt files live (default: `./prompts`) |
+| `default_language` | Documented default prompt language (`en`/`de`); runtime override via `TM_LANG` |
 | `project_roots[]` | **Your projects** — add name, path, pipeline for each |
 | `providers.claude` | Claude CLI config (`command`, `default_model`, `args`) |
 | `providers.codex` | Codex CLI config |

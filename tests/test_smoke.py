@@ -14,7 +14,8 @@ import sys
 REPO_ROOT = pathlib.Path(__file__).parent.parent
 
 REQUIRED_PATHS = [
-    "prompts/TICKET-MASTER.md",
+    "prompts/TICKET-MASTER.en.md",
+    "prompts/TICKET-MASTER.de.md",
     "config/ticket-master.config.example.json",
     "tickets/_templates/TICKET.txt",
     "tickets/INTAKE-TRIAGE-LOG.txt",
@@ -48,9 +49,14 @@ FORBIDDEN_PATTERNS = [
     "/Users/User/",
     "BACH",
     "Mac Studio",
+    "Hetzner",
+    ".SYNC",
 ]
 
-PROMPT_FILE = REPO_ROOT / "prompts" / "TICKET-MASTER.md"
+PROMPT_FILES = [
+    REPO_ROOT / "prompts" / "TICKET-MASTER.en.md",
+    REPO_ROOT / "prompts" / "TICKET-MASTER.de.md",
+]
 
 
 def test_structure():
@@ -81,16 +87,16 @@ def test_config_json():
 
 
 def test_prompt_clean():
-    text = PROMPT_FILE.read_text(encoding="utf-8")
-    hits = []
-    for pattern in FORBIDDEN_PATTERNS:
-        if pattern in text:
-            hits.append(pattern)
-    if hits:
-        print(f"FAIL anonymisation — forbidden terms found in prompt: {hits}")
-        return False
-    print("OK   anonymisation — no forbidden terms in prompt")
-    return True
+    ok = True
+    for prompt_file in PROMPT_FILES:
+        text = prompt_file.read_text(encoding="utf-8")
+        hits = [p for p in FORBIDDEN_PATTERNS if p in text]
+        if hits:
+            print(f"FAIL anonymisation — forbidden terms in {prompt_file.name}: {hits}")
+            ok = False
+    if ok:
+        print("OK   anonymisation — no forbidden terms in prompt files")
+    return ok
 
 
 def main():

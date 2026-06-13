@@ -5,7 +5,16 @@ setlocal
 
 set "SCRIPT_DIR=%~dp0"
 set "REPO_ROOT=%SCRIPT_DIR%.."
-set "PROMPT_FILE=%REPO_ROOT%\prompts\TICKET-MASTER.md"
+
+REM Language selection: TM_LANG (default "en"). Falls back to "en" if the file is missing.
+if not defined TM_LANG set "TM_LANG=en"
+set "PROMPT_FILE=%REPO_ROOT%\prompts\TICKET-MASTER.%TM_LANG%.md"
+if not exist "%PROMPT_FILE%" (
+    echo WARNING: prompt file for language '%TM_LANG%' not found; falling back to 'en'. 1>&2
+    set "TM_LANG=en"
+    set "PROMPT_FILE=%REPO_ROOT%\prompts\TICKET-MASTER.en.md"
+)
+
 set "BOOTSTRAP=Read and follow the instructions in %PROMPT_FILE% - start at step (a) and work down to Position 0."
 
 set "PROVIDER=claude"
@@ -22,6 +31,7 @@ if not "%~1"=="" (
 )
 
 echo [ticket-master] Starting provider: %PROVIDER%
+echo [ticket-master] Language: %TM_LANG%
 echo [ticket-master] Repo root: %REPO_ROOT%
 
 if "%PROVIDER%"=="claude" (

@@ -1,3 +1,5 @@
+<p align="center"><img src="assets/logo.svg" alt="ticket-master" width="160"></p>
+
 # ticket-master
 
 Ein plattformübergreifender, multi-provider **Ticket-Router-Agent** für Softwareprojekte.
@@ -9,7 +11,7 @@ KI-Provider und delegiert die Aufgabe — oder leitet sie ins projekteigene
 Task-Management weiter, wenn Delegation nicht sinnvoll ist.
 
 [![Lizenz: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)](VERSION)
+[![Version](https://img.shields.io/badge/version-1.1.0-blue.svg)](VERSION)
 
 ---
 
@@ -73,8 +75,30 @@ cp config/ticket-master.config.example.json config/ticket-master.config.json
 .\bin\ticket-master.ps1              # Windows PowerShell
 ```
 
-Der Agent liest `prompts/TICKET-MASTER.md`, orientiert sich an deinen Projekten
-und geht auf **Position 0** — wartet still auf dein erstes Ticket.
+Der Agent liest die Prompt-Datei der gewählten Sprache
+(`prompts/TICKET-MASTER.<lang>.md`, Standard Englisch), orientiert sich an deinen
+Projekten und geht auf **Position 0** — wartet still auf dein erstes Ticket.
+
+### Prompt-Sprache
+
+Der Agenten-Prompt liegt in zwei vollwertigen, inhaltsgleichen Versionen vor:
+
+- `prompts/TICKET-MASTER.en.md` (Englisch, Standard)
+- `prompts/TICKET-MASTER.de.md` (Deutsch)
+
+Die Sprache wird über die Umgebungsvariable `TM_LANG` gewählt; die Starter laden
+`prompts/TICKET-MASTER.${TM_LANG}.md` und fallen mit einer Warnung auf Englisch
+zurück, falls die angeforderte Datei fehlt. Das Config-Feld `default_language`
+dokumentiert den vorgesehenen Standard.
+
+```bash
+TM_LANG=de ./bin/ticket-master.sh        # Deutscher Prompt
+TM_LANG=en ./bin/ticket-master.sh        # Englischer Prompt (Standard)
+```
+
+```powershell
+$env:TM_LANG = "de"; .\bin\ticket-master.ps1
+```
 
 ---
 
@@ -97,6 +121,7 @@ und geht auf **Position 0** — wartet still auf dein erstes Ticket.
 | Variable | Standard | Wirkung |
 |----------|----------|---------|
 | `TM_PROVIDER` | `claude` | Provider ohne Flag überschreiben |
+| `TM_LANG` | `en` | Prompt-Sprache; lädt `prompts/TICKET-MASTER.${TM_LANG}.md` (Fallback `en`) |
 | `TM_SKIP_PERMISSIONS` | `0` | Auf `1` setzen, um `--dangerously-skip-permissions` an Claude zu übergeben |
 
 ---
@@ -112,6 +137,7 @@ und geht auf **Position 0** — wartet still auf dein erstes Ticket.
 | Feld | Beschreibung |
 |------|--------------|
 | `tickets_dir` | Wo Ticket-Dateien liegen (Standard: `./tickets`) |
+| `default_language` | Dokumentierte Standard-Promptsprache (`en`/`de`); Laufzeit-Override via `TM_LANG` |
 | `project_roots[]` | **Deine Projekte** — Name, Pfad und Pipeline für jeden Eintrag |
 | `providers.claude` | Claude-CLI-Konfiguration |
 | `providers.codex` | Codex-CLI-Konfiguration |

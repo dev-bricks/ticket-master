@@ -1,5 +1,13 @@
 # TODO — ticket-master
 
+## Roadmap
+
+- [ ] **i18n:** Standardsprachen über DE/EN hinaus erweitern — dem Muster der
+      ellmos-MCP-Server folgen (`set_language`-Mechanik, `README_de` + weitere
+      Sprachdateien). Geplant: weitere `prompts/TICKET-MASTER.<lang>.md`
+      (z.B. `es`, `fr`) + Sprachauswahl bereits vorbereitet
+      (`TM_LANG`/`default_language`).
+
 ## Near-term
 
 - [ ] Python helper script (`bin/ticket_master.py`) as a thin wrapper that reads

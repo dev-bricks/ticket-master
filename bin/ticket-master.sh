@@ -5,7 +5,16 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
-PROMPT_FILE="${REPO_ROOT}/prompts/TICKET-MASTER.md"
+
+# Language selection: TM_LANG (default "en"). Falls back to "en" if the file is missing.
+TM_LANG="${TM_LANG:-en}"
+PROMPT_FILE="${REPO_ROOT}/prompts/TICKET-MASTER.${TM_LANG}.md"
+if [[ ! -f "${PROMPT_FILE}" ]]; then
+    echo "WARNING: prompt file for language '${TM_LANG}' not found; falling back to 'en'." >&2
+    TM_LANG="en"
+    PROMPT_FILE="${REPO_ROOT}/prompts/TICKET-MASTER.en.md"
+fi
+
 BOOTSTRAP="Read and follow the instructions in ${PROMPT_FILE} - start at step (a) and work down to Position 0."
 
 PROVIDER="claude"
@@ -21,6 +30,7 @@ while [[ $# -gt 0 ]]; do
 done
 
 echo "[ticket-master] Starting provider: ${PROVIDER}"
+echo "[ticket-master] Language: ${TM_LANG}"
 echo "[ticket-master] Repo root: ${REPO_ROOT}"
 
 case "${PROVIDER}" in

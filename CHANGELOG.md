@@ -2,6 +2,26 @@
 
 All notable changes to ticket-master are documented here.
 
+## [1.1.0] — 2026-06-14
+
+### Added
+
+- Bilingual agent prompts: `prompts/TICKET-MASTER.en.md` (English) and
+  `prompts/TICKET-MASTER.de.md` (German) — fully equivalent in content.
+- `TM_LANG` environment variable for prompt-language selection in all starters
+  (`.sh`, `.bat`, `.ps1`); loads `prompts/TICKET-MASTER.${TM_LANG}.md` and falls
+  back to English with a stderr warning if the requested file is missing.
+- `default_language` field in `config/ticket-master.config.example.json`.
+- Logo (`assets/logo.svg`, agy-designed) embedded at the top of both READMEs.
+- i18n roadmap entry in `TODO.md`.
+
+### Changed
+
+- Renamed `prompts/TICKET-MASTER.md` → `prompts/TICKET-MASTER.en.md`.
+- Smoke test now checks both prompt languages and an extended anonymisation
+  pattern list.
+- Version badges in both READMEs bumped to 1.1.0.
+
 ## [1.0.0] — 2026-06-14
 
 ### Initial Release

@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256" role="img" aria-label="ticket-master logo">
+  <title>ticket-master</title>
+  <!-- Concept by agy/Gemini (ticket + routing hub, indigo/amber); finalized as clean SVG. -->
+  <!-- ticket body -->
+  <rect x="34" y="62" width="188" height="132" rx="20" fill="none" stroke="#6366f1" stroke-width="9"/>
+  <!-- intake -> hub -->
+  <line x1="64" y1="128" x2="150" y2="128" stroke="#6366f1" stroke-width="6" stroke-linecap="round"/>
+  <!-- hub -> workers -->
+  <line x1="150" y1="128" x2="192" y2="94" stroke="#6366f1" stroke-width="6" stroke-linecap="round"/>
+  <line x1="150" y1="128" x2="198" y2="128" stroke="#6366f1" stroke-width="6" stroke-linecap="round"/>
+  <line x1="150" y1="128" x2="192" y2="162" stroke="#6366f1" stroke-width="6" stroke-linecap="round"/>
+  <!-- ticket perforation -->
+  <line x1="96" y1="68" x2="96" y2="188" stroke="#6366f1" stroke-width="5" stroke-dasharray="2 12" stroke-linecap="round"/>
+  <!-- nodes -->
+  <circle cx="64" cy="128" r="8" fill="#f59e0b"/>
+  <circle cx="150" cy="128" r="10" fill="#6366f1"/>
+  <circle cx="192" cy="94" r="11" fill="#f59e0b"/>
+  <circle cx="198" cy="128" r="9" fill="#6366f1"/>
+  <circle cx="192" cy="162" r="9" fill="#6366f1"/>
+</svg>
