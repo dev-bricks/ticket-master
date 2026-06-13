@@ -2,16 +2,20 @@
 
 # ticket-master
 
-Ein plattformübergreifender, multi-provider **Ticket-Router-Agent** für Softwareprojekte.
+Ein plattformübergreifender, multi-provider **Workflow / Betriebsmodus** für einen KI-Coding-Agenten.
 
-ticket-master hält eine Agenten-Session offen und agiert als schlanker, langlebiger
-Router: Wenn du einen Bug, einen Änderungswunsch oder ein Projektproblem meldest,
-nimmt er das als strukturiertes Ticket auf, bewertet es, wählt den passenden
-KI-Provider und delegiert die Aufgabe — oder leitet sie ins projekteigene
-Task-Management weiter, wenn Delegation nicht sinnvoll ist.
+ticket-master ist ein Workflow/Betriebsmodus für einen KI-Coding-Agenten, kein Tool,
+das eigenständig handelt. Du hältst eine Agenten-Session (**„Position 0"**) in deinem
+Terminal offen; sobald dir ein Bug, ein Änderungswunsch oder ein Projektproblem
+auffällt, tippst du es einfach ein. Indem der Agent diesem Workflow folgt, nimmt er es
+als strukturiertes Ticket auf, ordnet es dem richtigen Projekt zu, bewertet es und
+routet es — entweder per Delegation an den besten verfügbaren KI-Provider/Subagenten
+für einen Sofort-Fix, oder durch Einpflegen ins projekteigene Task-Management, wenn
+Delegation nicht sinnvoll ist. Plattformübergreifend (Windows/macOS/Linux),
+multi-provider (Claude Code, Codex, agy/Gemini).
 
 [![Lizenz: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-1.1.0-blue.svg)](VERSION)
+[![Version](https://img.shields.io/badge/version-1.2.0-blue.svg)](VERSION)
 
 ---
 
@@ -19,7 +23,11 @@ Task-Management weiter, wenn Delegation nicht sinnvoll ist.
 
 ---
 
-## Was es tut
+## Wie es funktioniert
+
+ticket-master ist ein **prompt-gesteuerter Workflow**: Der Agent liest den
+TICKET-MASTER-Prompt und folgt ihm. Jeder Schritt unten ist etwas, das der *Agent*
+tut, indem er dem Prompt folgt — nichts läuft von selbst.
 
 ```
 Du meldest einen Bug oder Änderungswunsch
@@ -40,19 +48,20 @@ Du meldest einen Bug oder Änderungswunsch
 Position 0 — Wartet auf das nächste Ticket
 ```
 
-### Kernprinzipien
+### Kernprinzipien (wie der Agent angewiesen wird, sich zu verhalten)
 
-- **Lean Router:** Der Master-Agent bleibt schlank. Ausführung wird delegiert;
-  Subagenten melden kompakt zurück (Commit-Hash + eine Zeile).
-- **Companion-Muster:** Für eine Ticket-Serie im gleichen Bereich wird ein
-  Companion-Subagent einmal gespawnt und wiederverwendet.
-- **Score-basiertes Routing:** Jedes Ticket wird auf fünf Dimensionen bewertet
+- **Lean Router:** Der Agent bleibt in diesem Modus schlank. Ausführung wird an
+  Subagenten delegiert, die kompakt zurückmelden (Commit-Hash + eine Zeile).
+- **Companion-Muster:** Für eine Ticket-Serie im gleichen Bereich spawnt der Agent
+  einen Companion-Subagenten einmal und verwendet ihn wieder.
+- **Score-basiertes Routing:** Der Agent bewertet jedes Ticket auf fünf Dimensionen
   (Klarheit, Komplexität, Kreativität, Kontext, Kritikalität), um den
   benötigten Provider-Tier zu bestimmen.
 - **Graceful Fallback:** Wenn der bevorzugte Provider nicht verfügbar ist,
-  stellt eine Fallback-Kette sicher, dass kein Ticket verloren geht.
+  stellt die Fallback-Kette des Prompts sicher, dass kein Ticket verloren geht.
 - **Provider-agnostisch:** Funktioniert mit jedem CLI-basierten LLM-Provider.
-  Mitgeliefert: Claude, Codex und agy (Gemini). Erweiterbar per Config.
+  Prompt und Config bringen Unterstützung für Claude, Codex und agy (Gemini) mit.
+  Erweiterbar per Config.
 
 ---
 
@@ -75,9 +84,10 @@ cp config/ticket-master.config.example.json config/ticket-master.config.json
 .\bin\ticket-master.ps1              # Windows PowerShell
 ```
 
-Der Agent liest die Prompt-Datei der gewählten Sprache
-(`prompts/TICKET-MASTER.<lang>.md`, Standard Englisch), orientiert sich an deinen
-Projekten und geht auf **Position 0** — wartet still auf dein erstes Ticket.
+Das startet deinen gewählten CLI-Provider mit dem TICKET-MASTER-Prompt der
+gewählten Sprache (`prompts/TICKET-MASTER.<lang>.md`, Standard Englisch). Der Agent
+liest den Prompt, orientiert sich an deinen Projekten und geht auf **Position 0** —
+wartet still auf dein erstes Ticket.
 
 ### Prompt-Sprache
 

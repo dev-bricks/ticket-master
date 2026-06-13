@@ -2,16 +2,19 @@
 
 # ticket-master
 
-A cross-platform, multi-provider **ticket router agent** for software projects.
+A cross-platform, multi-provider **workflow / operating mode** for an AI coding agent.
 
-ticket-master keeps a session open and acts as a lean, long-lived router: when
-you report a bug, a change request, or any project problem, it captures the item
-as a structured ticket, scores it, picks the right AI provider for the job, and
-delegates accordingly — or routes it to the project's own task management when
-delegation is not appropriate.
+ticket-master is a workflow/operating mode for an AI coding agent, not a tool that
+acts on its own. You keep one agent session (**"Position 0"**) open in your terminal;
+whenever you notice a bug, a change request, or any project problem, you just type it
+in. Following this workflow, the agent captures it as a structured ticket, assigns it
+to the right project, scores it, and routes it — delegating to the best available AI
+provider/sub-agent for an immediate fix, or filing it into the project's own task
+management when delegation is not appropriate. Cross-platform (Windows/macOS/Linux),
+multi-provider (Claude Code, Codex, agy/Gemini).
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-1.1.0-blue.svg)](VERSION)
+[![Version](https://img.shields.io/badge/version-1.2.0-blue.svg)](VERSION)
 
 ---
 
@@ -19,7 +22,11 @@ delegation is not appropriate.
 
 ---
 
-## What It Does
+## How It Works
+
+ticket-master is a **prompt-driven workflow**: the agent reads the TICKET-MASTER
+prompt and follows it. Every step below is something the *agent* does by following
+the prompt — nothing runs on its own.
 
 ```
 You report a bug or change request
@@ -40,19 +47,19 @@ You report a bug or change request
 Position 0 — waiting for next ticket
 ```
 
-Key design principles:
+Key design principles (how the agent is instructed to behave):
 
-- **Lean Router:** The master agent stays lean. Execution is delegated; sub-agents
-  report back compactly (commit hash + one line).
+- **Lean Router:** The agent in this mode stays lean. Execution is delegated to
+  sub-agents that report back compactly (commit hash + one line).
 - **Companion Pattern:** For a series of tickets in the same domain, one companion
   sub-agent is spawned and reused — paying orientation cost once, not per ticket.
-- **Score-Based Routing:** Every ticket is scored on five dimensions (Clarity,
+- **Score-Based Routing:** The agent scores every ticket on five dimensions (Clarity,
   Complexity, Creativity, Context, Criticality) to determine the required provider
   tier.
-- **Graceful Fallback:** If the preferred provider is unavailable, a fallback chain
-  and checkpoint ensure tickets are never dropped.
-- **Provider-Agnostic:** Works with any CLI-based LLM provider. Ships with support
-  for Claude, Codex, and agy (Gemini). Extend via config.
+- **Graceful Fallback:** If the preferred provider is unavailable, the prompt's
+  fallback chain and checkpoint ensure tickets are never dropped.
+- **Provider-Agnostic:** Works with any CLI-based LLM provider. The prompt and config
+  ship with support for Claude, Codex, and agy (Gemini). Extend via config.
 
 ---
 
@@ -75,9 +82,10 @@ cp config/ticket-master.config.example.json config/ticket-master.config.json
 .\bin\ticket-master.ps1              # Windows PowerShell
 ```
 
-The agent reads the prompt file for the selected language
-(`prompts/TICKET-MASTER.<lang>.md`, default English), orients itself on your
-projects, and goes to **Position 0** — waiting silently for your first ticket.
+This launches your chosen CLI provider with the TICKET-MASTER prompt for the
+selected language (`prompts/TICKET-MASTER.<lang>.md`, default English). The agent
+reads the prompt, orients itself on your projects, and goes to **Position 0** —
+waiting silently for your first ticket.
 
 ### Prompt Language
 

@@ -2,6 +2,23 @@
 
 All notable changes to ticket-master are documented here.
 
+## [1.2.0] — 2026-06-14
+
+### Changed
+
+- Reframed ticket-master as a **workflow / operating mode** for an AI coding agent
+  rather than an autonomous tool that acts on its own. Sharpened the framing in both
+  READMEs and `llms.txt` using a canonical description; reworded passages that
+  presented the program as the acting subject so that the *agent* performs each step
+  by following the prompt.
+- Version badges in both READMEs bumped to 1.2.0.
+
+### Added
+
+- `SKILL.md` — Claude Code skill manifest. Instructs the agent to read
+  `prompts/TICKET-MASTER.${TM_LANG:-en}.md`, load `config/ticket-master.config.json`,
+  and follow the workflow through to Position 0.
+
 ## [1.1.1] — 2026-06-14
 
 ### Changed

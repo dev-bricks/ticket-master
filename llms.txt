@@ -2,11 +2,14 @@
 
 # ticket-master
 
-ticket-master is a cross-platform, multi-provider ticket router agent for software
-projects. It keeps an LLM session open as a lean, long-lived router: incoming bug
-reports and change requests are captured as structured ticket files, scored on five
-dimensions, matched to the best available CLI provider (Claude, Codex, agy/Gemini),
-and delegated via a processing chain with a graceful fallback.
+ticket-master is a workflow/operating mode for an AI coding agent, not a tool that
+acts on its own. You keep one agent session ("Position 0") open in your terminal;
+whenever you notice a bug, a change request, or any project problem, you just type it
+in. Following this workflow, the agent captures it as a structured ticket, assigns it
+to the right project, scores it (five dimensions), and routes it — delegating to the
+best available AI provider/sub-agent (Claude Code, Codex, agy/Gemini) for an immediate
+fix, or filing it into the project's own task management when delegation is not
+appropriate. Cross-platform (Windows/macOS/Linux), with a graceful fallback chain.
 
 Canonical repository: https://github.com/dev-bricks/ticket-master
 
@@ -14,9 +17,12 @@ Canonical repository: https://github.com/dev-bricks/ticket-master
 
 - `README.md`: user-facing overview, quickstart, starter matrix, routing explanation.
 - `README_de.md`: German documentation.
-- `prompts/TICKET-MASTER.md`: the anonymised agent prompt — defines the full
-  routing protocol (lean router principle, companion pattern, decision ladder,
-  score formula, processing chain A/B/C, position 0).
+- `SKILL.md`: Claude Code skill manifest — enters the triage-console workflow
+  (reads the prompt, loads config, goes to Position 0).
+- `prompts/TICKET-MASTER.en.md` / `prompts/TICKET-MASTER.de.md`: the anonymised agent
+  prompt (English/German) — defines the full routing protocol (lean router principle,
+  companion pattern, decision ladder, score formula, processing chain A/B/C,
+  position 0).
 - `config/ticket-master.config.example.json`: all configuration fields documented.
 - `tickets/_templates/TICKET.txt`: structured ticket template.
 - `tickets/INTAKE-TRIAGE-LOG.txt`: one-line-per-ticket audit trail.
