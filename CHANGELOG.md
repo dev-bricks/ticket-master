@@ -2,6 +2,15 @@
 
 All notable changes to ticket-master are documented here.
 
+## [1.1.1] — 2026-06-14
+
+### Changed
+
+- Logo replaced with a refined version genuinely authored by agy (Gemini 3.5 Pro)
+  via the Antigravity CLI (workspace granted with the `--add-dir` flag) — ticket
+  with perforation and stub detail plus a masked routing hub branching to three
+  nodes (amber accent). Works on light and dark backgrounds.
+
 ## [1.1.0] — 2026-06-14
 
 ### Added
