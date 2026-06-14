@@ -1,4 +1,4 @@
-<p align="center"><img src="assets/logo.svg" alt="ticket-master" width="160"></p>
+<img src="assets/banner.svg" alt="ticket-master" width="100%">
 
 # ticket-master
 

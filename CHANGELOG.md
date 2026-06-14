@@ -2,6 +2,13 @@
 
 All notable changes to ticket-master are documented here.
 
+## [1.2.1] — 2026-06-14
+
+### Changed
+
+- README banner: replaced the small centered icon with a full-width banner
+  (`assets/banner.svg`) — icon motif plus wordmark and tagline, edge-to-edge.
+
 ## [1.2.0] — 2026-06-14
 
 ### Changed
