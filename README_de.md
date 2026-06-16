@@ -156,6 +156,29 @@ $env:TM_LANG = "de"; .\bin\ticket-master.ps1
 
 ---
 
+## Auffindbarkeit und Abgrenzung
+
+Nutze beim Suchen den kanonischen Namen **`dev-bricks/ticket-master`**. Dieses
+Repository ist ein **LLM-Ticket-Router**: ein prompt-gesteuerter Triage-Workflow,
+mit dem eine Coding-Agent-Session Bugs aufnimmt, bewertet, einen Claude-/Codex-/
+agy-Provider auswählt und den Ticketverlauf nachvollziehbar hält.
+
+Gute Suchphrasen:
+
+```text
+dev-bricks ticket-master
+LLM Ticket Router Agent
+KI Coding Agent Triage Konsole
+Claude Codex Gemini Ticket Routing
+Multi-Provider LLM Task Router
+Prompt-gesteuerter Issue Intake Workflow
+Companion Pattern KI Agent Workflow
+```
+
+Nicht gemeint sind Ticketmaster-Event-APIs, Konzertticket-Bots, Helpdesk-SaaS,
+Customer-Support-Tickets, Ticket-Resale-Marktplätze oder ein eigenständiger
+Bugtracker, der ohne aktive LLM-Agenten-Session Issues anlegt.
+
 ## Wie das Routing funktioniert
 
 ### Score-Formel

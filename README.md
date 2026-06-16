@@ -167,6 +167,29 @@ Copy `config/ticket-master.config.example.json` to
 
 ---
 
+## Discovery Context
+
+Use the canonical name **`dev-bricks/ticket-master`** when searching for this
+project. The repository is about **LLM ticket routing**: a prompt-driven triage
+console that helps one coding-agent session capture bugs, score them, select a
+Claude/Codex/agy provider, and keep an auditable ticket trail.
+
+Good search phrases:
+
+```text
+dev-bricks ticket-master
+LLM ticket router agent
+AI coding agent triage console
+Claude Codex Gemini ticket routing
+multi-provider LLM task router
+prompt-driven issue intake workflow
+companion pattern AI agent workflow
+```
+
+Not this project: Ticketmaster event APIs, concert ticket bots, help-desk SaaS,
+customer support ticketing, marketplace ticket resale, or a standalone bug tracker
+that files issues without an active LLM agent session.
+
 ## How Routing Works
 
 ### Score Formula

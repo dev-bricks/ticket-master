@@ -1,4 +1,4 @@
-## Last-checked: 2026-06-14
+## Last-checked: 2026-06-16
 
 # ticket-master
 
@@ -51,11 +51,24 @@ cp config/ticket-master.config.example.json config/ticket-master.config.json
 ## Search Phrases
 
 ```
+dev-bricks ticket-master
 LLM ticket router agent
+AI coding agent triage console
 multi-provider AI ticket routing
 Claude Codex Gemini CLI agent router
 cross-platform LLM agent starter
 score-based AI provider selection
+prompt-driven issue intake workflow
 companion pattern LLM session
-ticket-master dev-bricks
+multi-provider LLM task router
 ```
+
+## Discovery Notes
+
+- The canonical searchable repo string is `dev-bricks/ticket-master`.
+- Strong external-name collisions: Ticketmaster event APIs, concert-ticket bots,
+  customer-support ticket systems, help-desk SaaS, resale marketplaces, and older
+  Ruby/API projects named `ticketmaster`.
+- Describe this project as an LLM ticket router, prompt-driven AI coding-agent
+  triage console, multi-provider task router, or Claude/Codex/Gemini routing
+  workflow. Avoid implying it is an autonomous issue tracker.

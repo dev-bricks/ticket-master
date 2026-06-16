@@ -2,6 +2,14 @@
 
 All notable changes to ticket-master are documented here.
 
+## [Unreleased]
+
+### Changed
+
+- Added README/README_de discovery context and `llms.txt` search notes so the
+  project is easier to distinguish from Ticketmaster event APIs, support-ticket
+  SaaS, ticket bots, and resale marketplaces.
+
 ## [1.2.1] — 2026-06-14
 
 ### Changed
