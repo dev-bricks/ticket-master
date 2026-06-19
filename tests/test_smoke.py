@@ -9,6 +9,8 @@ Checks:
 """
 import json
 import pathlib
+import shutil
+import subprocess
 import sys
 
 REPO_ROOT = pathlib.Path(__file__).parent.parent
@@ -99,11 +101,64 @@ def test_prompt_clean():
     return ok
 
 
+def test_gitignore_privacy_defaults():
+    if not shutil.which("git"):
+        print("WARN gitignore — git not found; skipping ignore-rule check")
+        return True
+
+    should_ignore = [
+        "config/ticket-master.config.json",
+        "tickets/BUG-123.txt",
+        "tickets/QUEUED/work.txt",
+        "tickets/.USER/manual.txt",
+        ".env",
+        ".env.local",
+        "credentials.json",
+        "token.json",
+        "id_ed25519",
+        "local.db",
+        "data/runtime.json",
+        ".vscode/settings.json",
+        ".idea/workspace.xml",
+    ]
+    should_track = [
+        "config/ticket-master.config.example.json",
+        "tickets/INTAKE-TRIAGE-LOG.txt",
+        "tickets/_templates/TICKET.txt",
+    ]
+
+    ok = True
+    for rel in should_ignore:
+        result = subprocess.run(
+            ["git", "check-ignore", "-q", "--", rel],
+            cwd=REPO_ROOT,
+            check=False,
+        )
+        if result.returncode != 0:
+            print(f"FAIL gitignore — expected ignored: {rel}")
+            ok = False
+
+    for rel in should_track:
+        result = subprocess.run(
+            ["git", "check-ignore", "-q", "--", rel],
+            cwd=REPO_ROOT,
+            check=False,
+        )
+        if result.returncode == 0:
+            print(f"FAIL gitignore — expected trackable: {rel}")
+            ok = False
+
+    if ok:
+        print("OK   gitignore — privacy defaults protect local tickets and secrets")
+    return ok
+
+
 def main():
     results = [
         test_structure(),
         test_config_json(),
         test_prompt_clean(),
+        test_gitignore_privacy_defaults(),
     ]
     passed = sum(results)
     total = len(results)

@@ -62,9 +62,31 @@ to ONE companion (not N inline edits — that bloats the master).
 
 ---
 
+## MULTI-SYSTEM CLAIM CONVENTION
+
+When the ticket queue is shared across multiple systems via a cloud-synced
+folder (OneDrive, Dropbox, Google Drive), the claim is signalled via the
+**filename** — no in-file field needed:
+
+| State    | Filename pattern              | Example                          |
+|----------|-------------------------------|----------------------------------|
+| Unclaimed | `T-YYYYMMDD-NN.txt`          | `T-20260619-01.txt`              |
+| Claimed  | `T-YYYYMMDD-NN.<HOST>.txt`   | `T-20260619-01.WORKSTATION.txt`  |
+| Solved   | move to `SOLVED/`             | as usual                         |
+
+**Glob patterns for agents:**
+- `tickets/T-??????-??.txt` → unclaimed tickets
+- `tickets/T-*.WORKSTATION.txt` → tickets claimed by WORKSTATION
+
+A rename within the same directory is atomic on NTFS/cloud-sync. If a conflict
+copy appears, one system has won the claim; the other must roll back and pick
+the next unclaimed ticket.
+
+---
+
 ## LOGGING (audit without file ceremony)
 
-- **`tickets/INTAKE-TRIAGE-LOG.txt`:** Every incoming ticket gets **one line**
+- **`tickets/_logs/INTAKE-TRIAGE-LOG.txt`:** Every incoming ticket gets **one line**
   at intake:
 
   ```

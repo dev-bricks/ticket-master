@@ -1,6 +1,6 @@
 ---
 name: ticket-master
-description: "Use when the user wants to keep an open triage console for a software project - capturing bugs/change-requests as structured tickets, scoring them, and routing them to the right AI provider/sub-agent for an immediate fix or into the project's task management. Triggers on /ticket-master or 'open the triage console / ticket master'."
+description: "Use when the user wants to keep an open triage console for a software project - capturing bugs/change-requests as structured tickets, scoring them, and routing them to the right AI provider/sub-agent for an immediate fix or into the project's task management. Cloud-ready: works across multiple machines sharing a cloud-synced folder via filename-based claims. Triggers on /ticket-master or 'open the triage console / ticket master'."
 ---
 
 # ticket-master — Triage Console Workflow
@@ -9,6 +9,10 @@ ticket-master is a **workflow / operating mode**, not a tool that acts on its ow
 You (the agent) follow the TICKET-MASTER prompt and stay at **Position 0** — an open
 triage console. When the user types a bug, change request, or any project problem,
 you capture it, triage it, and route it.
+
+**Cloud-Ready / Multi-System:** The ticket queue works across multiple machines sharing
+a cloud-synced folder. Claims are signalled via filename rename (atomic on NTFS) —
+no lock files needed. Audit trail lives in `tickets/_logs/INTAKE-TRIAGE-LOG.txt`.
 
 ## How to enter this mode
 

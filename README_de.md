@@ -15,7 +15,7 @@ Delegation nicht sinnvoll ist. Plattformübergreifend (Windows/macOS/Linux),
 multi-provider (Claude Code, Codex, agy/Gemini).
 
 [![Lizenz: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-1.2.0-blue.svg)](VERSION)
+[![Version](https://img.shields.io/badge/version-1.3.0-blue.svg)](VERSION)
 
 ---
 
@@ -62,6 +62,10 @@ Position 0 — Wartet auf das nächste Ticket
 - **Provider-agnostisch:** Funktioniert mit jedem CLI-basierten LLM-Provider.
   Prompt und Config bringen Unterstützung für Claude, Codex und agy (Gemini) mit.
   Erweiterbar per Config.
+- **Cloud-Ready / Multi-System:** Die Ticket-Queue funktioniert auf mehreren
+  Maschinen, die einen cloud-synced Ordner (OneDrive, Dropbox, Google Drive) teilen.
+  Claims werden per Dateiname-Rename signalisiert — atomar auf NTFS, keine Lock-Dateien
+  nötig.
 
 ---
 
@@ -198,19 +202,40 @@ Jede Dimension: 0–10. Gesamt: 0–50.
 
 ---
 
-## Ticket-Lebenszyklus
+## Verzeichnisstruktur
 
 ```
-tickets/               <- offene Tickets (je eine .txt-Datei)
-tickets/QUEUED/        <- an Provider übergeben, Ergebnis ausstehend
-tickets/PENDING/       <- ins projekteigene Task-Management überführt
-tickets/.USER/         <- erfordert manuell gestartetes Modell/User-Aktion
-tickets/SOLVED/        <- gelöst und empirisch bestätigt
-tickets/INTAKE-TRIAGE-LOG.txt  <- eine Zeile Audit-Trail pro Ticket
+tickets/
+├── _logs/                      <- Audit-Trail (getrennt von der Ticket-Queue)
+│   └── INTAKE-TRIAGE-LOG.txt
+├── _templates/TICKET.txt       <- Ticket-Vorlage
+├── *.txt                       <- offene Tickets (je eine .txt-Datei)
+├── QUEUED/                     <- an Provider übergeben, Ergebnis ausstehend
+├── PENDING/                    <- ins projekteigene Task-Management überführt
+├── .USER/                      <- erfordert manuell gestartetes Modell/User-Aktion
+└── SOLVED/                     <- gelöst und empirisch bestätigt
 ```
 
 Triviale Tickets, die sofort erledigt werden, brauchen keine `.txt`-Datei —
-eine Zeile im `INTAKE-TRIAGE-LOG.txt` genügt.
+eine Zeile in `tickets/_logs/INTAKE-TRIAGE-LOG.txt` genügt.
+
+## Cloud-Ready: Multi-System Claim-Konvention
+
+Wenn das `tickets/`-Verzeichnis in einem cloud-synced Ordner liegt, der von
+mehreren Maschinen geteilt wird, werden Claims per **Dateiname** signalisiert —
+kein In-File-Feld, keine Lock-Dateien nötig:
+
+| Zustand    | Dateiname-Muster             | Beispiel                         |
+|------------|------------------------------|----------------------------------|
+| Unclaimed  | `T-YYYYMMDD-NN.txt`         | `T-20260619-01.txt`              |
+| Claimed    | `T-YYYYMMDD-NN.<HOST>.txt`  | `T-20260619-01.WORKSTATION.txt`  |
+| Gelöst     | nach `SOLVED/` verschieben   | wie bisher                       |
+
+**Glob-Muster:** `tickets/T-??????-??.txt` (unclaimed) · `tickets/T-*.LAPTOP.txt` (meine).
+
+Ein Rename im selben Verzeichnis ist auf NTFS und den meisten Cloud-Sync-Implementierungen
+atomar. Entsteht eine Konfliktkopie, hat ein System den Claim gewonnen; das andere rollt
+zurück und nimmt das nächste unclaimed Ticket.
 
 ---
 

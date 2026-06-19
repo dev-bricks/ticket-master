@@ -33,6 +33,7 @@ authentication, or user data directly. The primary security surface is:
   installed LLM CLI. Ensure your provider CLI is from a trusted source.
 - **Config file:** `config/ticket-master.config.json` is gitignored. Do not
   commit credentials or API keys.
-- **Ticket files:** tickets may contain internal project information. The
-  `tickets/` directory is partially gitignored (lifecycle subdirs are empty
-  by default; adapt `.gitignore` to your privacy requirements).
+- **Ticket files:** tickets may contain internal project information. Runtime
+  ticket files are gitignored by default; only the template and neutral intake
+  log are tracked. Adapt `.gitignore` only if you intentionally want to version
+  project tickets.

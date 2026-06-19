@@ -1,6 +1,27 @@
 # Real config (only the .example is tracked)
 config/ticket-master.config.json
 
+# Local secrets and credentials
+.env
+.env.*
+*.pem
+*.key
+*.p12
+*.pfx
+id_rsa
+id_ed25519
+credentials*.json
+token*.json
+secrets*.json
+*.recovery-codes.txt
+.npmrc
+*.db
+
+# Runtime ticket files can contain private project details.
+tickets/*.txt
+!tickets/INTAKE-TRIAGE-LOG.txt
+!tickets/_templates/TICKET.txt
+
 # Ticket lifecycle directories — keep .gitkeep, ignore everything else
 tickets/QUEUED/*
 !tickets/QUEUED/.gitkeep
@@ -16,15 +37,21 @@ tickets/INTAKE-TRIAGE-LOG.local.txt
 
 # Python
 __pycache__/
+*.pyc
 *.py[cod]
 .venv/
 venv/
 *.egg-info/
 dist/
 build/
+data/
 
 # Node
 node_modules/
+
+# IDE
+.idea/
+.vscode/
 
 # OS
 .DS_Store

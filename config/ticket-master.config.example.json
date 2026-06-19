@@ -67,6 +67,6 @@
   "usage_limit_warning_percent": 90,
 
   "logging": {
-    "intake_log": "INTAKE-TRIAGE-LOG.txt"
+    "intake_log": "_logs/INTAKE-TRIAGE-LOG.txt"
   }
 }

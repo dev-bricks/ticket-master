@@ -65,10 +65,32 @@ bündle zu EINEM Companion (nicht N Inline-Edits — das bläht den Master auf).
 
 ---
 
+## MULTI-SYSTEM CLAIM-KONVENTION
+
+Wenn die Ticket-Queue über einen cloud-synced Ordner (OneDrive, Dropbox,
+Google Drive) von mehreren Systemen gleichzeitig genutzt wird, wird der Claim
+per **Dateiname** signalisiert — kein In-File-Feld nötig:
+
+| Zustand    | Dateiname-Muster               | Beispiel                         |
+|------------|-------------------------------|----------------------------------|
+| Unclaimed  | `T-YYYYMMDD-NN.txt`           | `T-20260619-01.txt`              |
+| Claimed    | `T-YYYYMMDD-NN.<HOST>.txt`    | `T-20260619-01.WORKSTATION.txt`  |
+| Gelöst     | nach `SOLVED/` verschieben    | wie bisher                       |
+
+**Glob-Muster für Agenten:**
+- `tickets/T-??????-??.txt` → unclaimed Tickets
+- `tickets/T-*.WORKSTATION.txt` → von WORKSTATION geclaimte Tickets
+
+Ein Rename im selben Verzeichnis ist auf NTFS/Cloud-Sync atomar. Wenn eine
+Konfliktkopie entsteht, hat ein System den Claim gewonnen; das andere muss
+zurückrollen und das nächste unclaimed Ticket nehmen.
+
+---
+
 ## LOGGING (Audit ohne Datei-Zeremonie)
 
-- **`tickets/INTAKE-TRIAGE-LOG.txt`:** Jedes eingehende Ticket bekommt **eine
-  Zeile** beim Intake:
+- **`tickets/_logs/INTAKE-TRIAGE-LOG.txt`:** Jedes eingehende Ticket bekommt
+  **eine Zeile** beim Intake:
 
   ```
   Datum | ID | Kurzbeschreibung | Projekt | Route | Ergebnis

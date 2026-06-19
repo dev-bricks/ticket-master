@@ -2,13 +2,35 @@
 
 All notable changes to ticket-master are documented here.
 
-## [Unreleased]
+## [1.3.0] — 2026-06-19
 
-### Changed
+### Added
 
+- **Cloud-Ready / Multi-System Claim Convention:** When the `tickets/` directory is
+  shared across multiple machines via a cloud-synced folder (OneDrive, Dropbox, Google
+  Drive), claims are signalled via filename rename — `T-YYYYMMDD-NN.txt` (unclaimed)
+  → `T-YYYYMMDD-NN.<HOST>.txt` (claimed). Atomic on NTFS; no lock files needed.
+  Documented in both prompts (new `MULTI-SYSTEM CLAIM CONVENTION` section), both
+  READMEs (new `Cloud-Ready` sections), `SKILL.md`, and `llms.txt`.
+- **`tickets/_logs/` sub-directory:** Audit trail (`INTAKE-TRIAGE-LOG.txt`) moved from
+  `tickets/` root into `tickets/_logs/` to keep the ticket queue clean.
+  Existing `INTAKE-TRIAGE-LOG.txt` migrated; all references updated (prompts, config
+  example, `llms.txt`, READMEs).
 - Added README/README_de discovery context and `llms.txt` search notes so the
   project is easier to distinguish from Ticketmaster event APIs, support-ticket
   SaaS, ticket bots, and resale marketplaces.
+
+### Changed
+
+- Both agent prompts: log path updated from `tickets/INTAKE-TRIAGE-LOG.txt` to
+  `tickets/_logs/INTAKE-TRIAGE-LOG.txt`.
+- `config/ticket-master.config.example.json`: `logging.intake_log` updated to
+  `_logs/INTAKE-TRIAGE-LOG.txt`.
+- Both READMEs: Ticket Lifecycle section replaced by expanded Directory Layout +
+  Cloud-Ready section; version badges bumped to 1.3.0.
+- `SKILL.md`: description and body updated to mention Cloud-Ready and `_logs/` path.
+- `llms.txt`: description updated; audit trail path corrected; last-checked updated
+  to 2026-06-19.
 
 ## [1.2.1] — 2026-06-14
 
