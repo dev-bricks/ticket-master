@@ -2,6 +2,24 @@
 
 All notable changes to ticket-master are documented here.
 
+## [1.4.0] — 2026-06-27
+
+### Added
+
+- **`lib/ticket_writer.py`:** user-neutral helper for asynchronous ticket creation — drop an
+  unclaimed `T-YYYYMMDD-NN.txt` into `<tickets_dir>/QUEUED/` even when no TICKET-MASTER session
+  is running (e.g. from a lock-watcher GUI). `tickets_dir` is required or read from
+  `TICKET_MASTER_TICKETS_DIR`; the date is injectable for deterministic tests.
+- **`lib/doc_scanner.py`:** scan / create / append the four project control documents
+  (`TODO.md`, `AUFGABEN.txt`, `DONE.md`, `DECISIONS.md`) without overwriting curated content;
+  `DECISIONS.md` is created in ADR format.
+- **`tests/test_lib_helpers.py`** covering both helpers.
+
+### Notes
+
+- Mirrored from the running `_scripts/` instance used by the lock-watcher; this module is the
+  user-neutral publishable copy.
+
 ## [1.3.0] — 2026-06-19
 
 ### Added
