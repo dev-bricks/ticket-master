@@ -81,6 +81,16 @@
       `teilportiert` ALLE gelisteten Skills; optionale (harness-abhängige)
       Worker-Rollen-Wahl generisch im Modul, konkret (Claude-Code-
       Subagenten) in der privaten Instanz. Tests: 9 neue (32/32 gesamt).
+- [ ] **Phase 1b — Usecase-Level-Matching (Folgepunkt, 2026-07-04):** Der
+      Generator matcht nur die EXPERTEN-Ebene gegen Skills. Boss-EIGENE
+      Usecases (im BACH-Bestand z.B. Dossier/Location/Route beim
+      persönlichen Assistenten) haben aber teils bereits extrahierte
+      Standalone-Skills (Kategorie `assist`, untracked: dossier-briefing,
+      location-suche, reiseroute, …) und erscheinen trotzdem nicht als
+      Endpunkte (empirisch verifiziert mit `--extra-skills-dir`).
+      Erweiterung: `usecases[]` der Domäne ebenfalls fuzzy matchen →
+      neues Feld `usecase_skills`, damit domains.json die volle
+      Endpunkt-Landkarte trägt.
 - [x] **Phase 4 (1.9.0) — Wissens-Schicht:** User-Leitsatz: Was den
       Ticket-Master zum persönlichen Assistenten macht, ist WISSEN über das
       System (wo was ist, Routing, MCP-Server, Subsysteme) — nicht nur
