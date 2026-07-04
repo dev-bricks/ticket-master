@@ -15,10 +15,13 @@
       SECURITY-Versionsmatrix, Badges, `.gitignore` (`_logs/`-Pfade, LOCK*.txt).
 - [ ] **(Folge)** `prompts_dir` in den `bin/`-Launchern tatsächlich auswerten
       (oder Feld aus dem Config-Beispiel entfernen).
-- [ ] **(Folge, Design)** Angleichung an die private `_TICKETS`-Instanz prüfen:
-      dort ist die Sammel-Logdatei INTAKE-TRIAGE-LOG deprecated (Multi-System-
-      OneDrive-Kollisionen) zugunsten Audit-Trail PRO Ticket — entscheiden, ob
-      das public Modul dieselbe Konvention übernehmen soll.
+- [x] **(Folge, Design — entschieden [U 2026-07-04 „immer verbesserungen
+      rückangleichen"], umgesetzt in v1.5.0)** Angleichung an die private
+      `_TICKETS`-Instanz: Sammel-Logdatei deprecated, Audit-Trail PRO Ticket
+      (Prompts, READMEs, SKILL, llms.txt, Config, Log-Stub). Im Gegenzug die
+      v1.4.1-Lib-Fixes (exklusives Anlegen, Lifecycle-IDs, striktes UTF-8)
+      in die private laufende Instanz `_scripts/ticket_writer.py` +
+      `_scripts/doc_scanner.py` gespiegelt (Lock-Watcher-Tests 8/8 grün).
 
 ## Roadmap
 

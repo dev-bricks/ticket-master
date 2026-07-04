@@ -1,11 +1,11 @@
-# INTAKE-TRIAGE-LOG
-# One line per incoming ticket at intake (lightweight audit trail).
-# Full ticket .txt only for: delegated-with-tracking / PENDING / deferred /
-# multi-step across sessions / audit-relevant.
-# Trivial + immediately done + verified -> log line only.
+# INTAKE-TRIAGE-LOG — DEPRECATED (since 1.5.0)
+# ============================================================================
+# This shared intake log is no longer written. The audit/triage trail lives
+# PER TICKET inside its own T-….<HOST>.txt file (STATUS / LOG / SOLUTION
+# fields). Trivial, immediately verified one-liners get a minimal ticket file
+# dropped directly into tickets/SOLVED/.
 #
-# Format:
-# Date | ID | Short description | Project | Route | Result
-#   Route:   self | companion:<name> | new-sub:<model> | defer->File | .USER
-#   Result:  done <hash> | queued | pending | logged
+# Why deprecated: on multi-system cloud-synced setups, several machines
+# appending to this one file produced sync conflict copies and lost lines.
+# The file is kept only so legacy checkouts and old references do not break.
 # ============================================================================

@@ -14,7 +14,7 @@ management when delegation is not appropriate. Cross-platform (Windows/macOS/Lin
 multi-provider (Claude Code, Codex, agy/Gemini).
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-1.4.1-blue.svg)](VERSION)
+[![Version](https://img.shields.io/badge/version-1.5.0-blue.svg)](VERSION)
 
 ---
 
@@ -216,7 +216,7 @@ At score ≥ 35, an advisor model is recommended.
 
 ```
 tickets/
-├── _logs/                      <- audit trail (separate from ticket queue)
+├── _logs/                      <- DEPRECATED shared intake log (pre-1.5.0)
 │   └── INTAKE-TRIAGE-LOG.txt
 ├── _templates/TICKET.txt       <- ticket template
 ├── *.txt                       <- open tickets (one .txt file each)
@@ -226,8 +226,12 @@ tickets/
 └── SOLVED/                     <- resolved and empirically confirmed
 ```
 
-Trivial tickets that are resolved immediately do not need a `.txt` file — a
-single line in `tickets/_logs/INTAKE-TRIAGE-LOG.txt` suffices.
+The audit/triage trail lives **per ticket** in the ticket file itself
+(`STATUS` / `LOG` / `SOLUTION` fields). Trivial tickets that are resolved and
+verified immediately get a **minimal** ticket file dropped directly into
+`tickets/SOLVED/`. The former shared `tickets/_logs/INTAKE-TRIAGE-LOG.txt` is
+**deprecated**: with several machines appending to one cloud-synced file, sync
+conflict copies ate log lines.
 
 ### Cloud-Ready: Multi-System Claim Convention
 

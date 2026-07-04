@@ -51,8 +51,9 @@ After the first task it is already oriented (auth, conventions, structure).
    a. Matching companion active? → Send task via `SendMessage` to that companion.
    b. No companion, but domain will produce more tickets / non-trivial / needs
       file reads → **Spawn companion**, assign task, keep for follow-ups.
-   c. True one-liner, no file reads, won't recur → **Master fast-lane** + 1 line
-      in `tickets/_logs/INTAKE-TRIAGE-LOG.txt`.
+   c. True one-liner, no file reads, won't recur → **Master fast-lane** +
+      a **minimal** solved ticket file directly in `tickets/SOLVED/`
+      (`T-….<HOST>.txt`, STATUS done, one LOG line, result).
 
 4. **Large / parallel / bulk** → Dedicated sub-agent or swarm.
 
@@ -86,19 +87,18 @@ the next unclaimed ticket.
 
 ## LOGGING (audit without file ceremony)
 
-- **`tickets/_logs/INTAKE-TRIAGE-LOG.txt`:** Every incoming ticket gets **one line**
-  at intake:
-
-  ```
-  Date | ID | Short description | Project | Route | Result
-  ```
-
-  Routes: `self` | `companion:<name>` | `new-sub:<model>` | `defer->File` | `.USER`
-  Results: `done <hash>` | `queued` | `pending` | `logged`
-
-- Full ticket `.txt` only for: delegated-with-tracking, PENDING, deferred,
-  multi-step across sessions, audit-relevant. Otherwise the log line suffices.
-  Rule of thumb: trivial + immediately done + verified → log line only.
+- **The audit/triage trail lives PER TICKET** — inside its own
+  `T-….<HOST>.txt` file, in the `STATUS` / `LOG` / `SOLUTION` fields. There is
+  **no shared log file**: on multi-system cloud-synced setups, several
+  machines appending to one file produce sync conflict copies and lost lines.
+- Trivial one-liners that are fixed and verified immediately: solve them and
+  drop a **minimal** ticket file directly into `tickets/SOLVED/`
+  (`T-….<HOST>.txt` with ID, one LOG line `Date | Route | Result`, result
+  hash) — never append to a collective file.
+- Full ticket `.txt` with all sections only for: delegated-with-tracking,
+  PENDING, deferred, multi-step across sessions, audit-relevant.
+- **Deprecated:** `tickets/_logs/INTAKE-TRIAGE-LOG.txt` (the pre-1.5.0 shared
+  intake log). Kept for legacy setups; do not write new lines to it.
 
 ---
 

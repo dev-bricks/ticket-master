@@ -12,7 +12,8 @@ you capture it, triage it, and route it.
 
 **Cloud-Ready / Multi-System:** The ticket queue works across multiple machines sharing
 a cloud-synced folder. Claims are signalled via filename rename (atomic on NTFS) —
-no lock files needed. Audit trail lives in `tickets/_logs/INTAKE-TRIAGE-LOG.txt`.
+no lock files needed. The audit trail lives per ticket (STATUS/LOG/SOLUTION fields
+in each `T-….<HOST>.txt`); the shared `tickets/_logs/` intake log is deprecated.
 
 ## How to enter this mode
 

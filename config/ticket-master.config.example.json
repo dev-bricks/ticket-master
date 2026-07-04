@@ -1,12 +1,9 @@
 {
   "_comment": "Copy this file to ticket-master.config.json and fill in your own values.",
-
   "tickets_dir": "./tickets",
   "prompts_dir": "./prompts",
-
   "_comment_language": "Prompt language. The bin/ starters load prompts/TICKET-MASTER.<lang>.md. Override at runtime with the TM_LANG environment variable. Falls back to 'en' if the requested file is missing.",
   "default_language": "en",
-
   "project_roots": [
     {
       "_comment": "Add your own project directories here.",
@@ -25,7 +22,6 @@
       "pipeline": "docs"
     }
   ],
-
   "providers": {
     "claude": {
       "_comment": "Anthropic Claude CLI (https://github.com/anthropic-ai/claude-code). Set TM_SKIP_PERMISSIONS=1 to pass --dangerously-skip-permissions.",
@@ -46,16 +42,13 @@
       "args": []
     }
   },
-
   "default_provider": "claude",
-
   "advisor": {
     "_comment": "Optional: advisor model for high-stakes tickets (score >= 35). Not programmatically configurable in all harnesses — may require manual activation.",
     "enabled": false,
     "model": "opus",
     "threshold_score": 35
   },
-
   "score_thresholds": {
     "_comment": "Map score ranges to provider tiers. Adjust to match your available models.",
     "tier1_max": 8,
@@ -63,10 +56,8 @@
     "tier3_max": 28,
     "tier4_min": 29
   },
-
   "usage_limit_warning_percent": 90,
-
   "logging": {
-    "intake_log": "_logs/INTAKE-TRIAGE-LOG.txt"
+    "_comment": "Deprecated: intake_log (shared file) removed in 1.5.0 - audit trail lives per ticket (STATUS/LOG/SOLUTION fields)."
   }
 }

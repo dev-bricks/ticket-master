@@ -2,6 +2,23 @@
 
 All notable changes to ticket-master are documented here.
 
+## [1.5.0] — 2026-07-04
+
+### Changed
+
+- **Audit trail is now PER TICKET; the shared intake log is deprecated.**
+  Back-alignment from the battle-tested private instance of this workflow:
+  with several machines appending to one cloud-synced
+  `tickets/_logs/INTAKE-TRIAGE-LOG.txt`, sync conflict copies ate log lines.
+  The audit/triage trail now lives inside each ticket's own
+  `T-….<HOST>.txt` (`STATUS` / `LOG` / `SOLUTION` fields). Trivial,
+  immediately verified one-liners get a **minimal** ticket file dropped
+  directly into `tickets/SOLVED/` instead of a shared log line.
+  Updated: both prompts (decision ladder 3c + LOGGING section), both READMEs,
+  `SKILL.md`, `llms.txt`; `logging.intake_log` removed from the config
+  example; the `_logs/` file itself is kept as a deprecation stub so legacy
+  checkouts and old references do not break.
+
 ## [1.4.1] — 2026-07-04
 
 ### Fixed

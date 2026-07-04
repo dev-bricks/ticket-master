@@ -55,7 +55,9 @@ wiederholt per `SendMessage`. Nach der ersten Aufgabe ist er bereits orientiert
       trivial / braucht Dateilesungen → **Companion spawnen**, Aufgabe zuweisen,
       für Folge-Tickets behalten.
    c. Echter Einzeiler, keine Dateilesungen, wird nicht wiederkehren →
-      **Master-Fast-Lane** + 1 Zeile in `tickets/_logs/INTAKE-TRIAGE-LOG.txt`.
+      **Master-Fast-Lane** + **minimale** Solved-Ticketdatei direkt in
+      `tickets/SOLVED/` (`T-….<HOST>.txt`, STATUS done, eine VERLAUF-Zeile,
+      Ergebnis).
 
 4. **Groß / parallel / Massen** → Dedizierter Subagent oder Schwarm.
 
@@ -89,19 +91,20 @@ zurückrollen und das nächste unclaimed Ticket nehmen.
 
 ## LOGGING (Audit ohne Datei-Zeremonie)
 
-- **`tickets/_logs/INTAKE-TRIAGE-LOG.txt`:** Jedes eingehende Ticket bekommt
-  **eine Zeile** beim Intake:
-
-  ```
-  Datum | ID | Kurzbeschreibung | Projekt | Route | Ergebnis
-  ```
-
-  Routen: `self` | `companion:<name>` | `new-sub:<modell>` | `defer->Datei` | `.USER`
-  Ergebnisse: `done <hash>` | `queued` | `pending` | `logged`
-
-- Volle Ticket-`.txt` nur für: delegiert-mit-Tracking, PENDING, zurückgestellt,
-  mehrstufig über Sessions hinweg, audit-relevant. Sonst genügt die Log-Zeile.
-  Faustregel: trivial + sofort erledigt + verifiziert → nur Log-Zeile.
+- **Der Audit-/Triage-Trail lebt PRO TICKET** — in der jeweiligen
+  `T-….<HOST>.txt` selbst, in den Feldern `STATUS` / `VERLAUF` / `LOESUNG`.
+  Es gibt **keine geteilte Sammel-Logdatei**: Auf Multi-System-Cloud-Sync-
+  Setups erzeugen mehrere Maschinen, die an eine Datei anhängen,
+  Konfliktkopien und verlorene Zeilen.
+- Triviale, sofort erledigte und verifizierte Einzeiler: lösen und eine
+  **minimale** Ticketdatei direkt nach `tickets/SOLVED/` legen
+  (`T-….<HOST>.txt` mit ID, einer VERLAUF-Zeile `Datum | Route | Ergebnis`,
+  Ergebnis-Hash) — nie an eine Sammeldatei anhängen.
+- Volle Ticket-`.txt` mit allen Abschnitten nur für: delegiert-mit-Tracking,
+  PENDING, zurückgestellt, mehrstufig über Sessions hinweg, audit-relevant.
+- **Deprecated:** `tickets/_logs/INTAKE-TRIAGE-LOG.txt` (das geteilte
+  Intake-Log vor 1.5.0). Bleibt für Alt-Setups liegen; keine neuen Zeilen
+  mehr hineinschreiben.
 
 ---
 

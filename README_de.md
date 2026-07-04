@@ -15,7 +15,7 @@ Delegation nicht sinnvoll ist. Plattformübergreifend (Windows/macOS/Linux),
 multi-provider (Claude Code, Codex, agy/Gemini).
 
 [![Lizenz: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-1.4.1-blue.svg)](VERSION)
+[![Version](https://img.shields.io/badge/version-1.5.0-blue.svg)](VERSION)
 
 ---
 
@@ -206,7 +206,7 @@ Jede Dimension: 0–10. Gesamt: 0–50.
 
 ```
 tickets/
-├── _logs/                      <- Audit-Trail (getrennt von der Ticket-Queue)
+├── _logs/                      <- DEPRECATED geteiltes Intake-Log (vor 1.5.0)
 │   └── INTAKE-TRIAGE-LOG.txt
 ├── _templates/TICKET.txt       <- Ticket-Vorlage
 ├── *.txt                       <- offene Tickets (je eine .txt-Datei)
@@ -216,8 +216,12 @@ tickets/
 └── SOLVED/                     <- gelöst und empirisch bestätigt
 ```
 
-Triviale Tickets, die sofort erledigt werden, brauchen keine `.txt`-Datei —
-eine Zeile in `tickets/_logs/INTAKE-TRIAGE-LOG.txt` genügt.
+Der Audit-/Triage-Trail lebt **pro Ticket** in der Ticketdatei selbst
+(Felder `STATUS` / `VERLAUF` / `LOESUNG`). Triviale, sofort erledigte und
+verifizierte Tickets bekommen eine **minimale** Ticketdatei direkt in
+`tickets/SOLVED/`. Das frühere geteilte `tickets/_logs/INTAKE-TRIAGE-LOG.txt`
+ist **deprecated**: Wenn mehrere Maschinen an eine cloud-synchronisierte Datei
+anhängen, fressen Konfliktkopien Log-Zeilen.
 
 ## Cloud-Ready: Multi-System Claim-Konvention
 
