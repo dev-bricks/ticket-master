@@ -19,7 +19,7 @@ secrets*.json
 
 # Runtime ticket files can contain private project details.
 tickets/*.txt
-!tickets/INTAKE-TRIAGE-LOG.txt
+!tickets/_logs/INTAKE-TRIAGE-LOG.txt
 !tickets/_templates/TICKET.txt
 
 # Ticket lifecycle directories — keep .gitkeep, ignore everything else
@@ -33,7 +33,7 @@ tickets/.USER/*
 !tickets/.USER/.gitkeep
 
 # Local intake log variant
-tickets/INTAKE-TRIAGE-LOG.local.txt
+tickets/_logs/INTAKE-TRIAGE-LOG.local.txt
 
 # Python
 __pycache__/
@@ -57,3 +57,6 @@ node_modules/
 .DS_Store
 Thumbs.db
 desktop.ini
+
+# Multi-Agent Lock-System (lokal, nie committen)
+LOCK*.txt

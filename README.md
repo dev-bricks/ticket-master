@@ -14,7 +14,7 @@ management when delegation is not appropriate. Cross-platform (Windows/macOS/Lin
 multi-provider (Claude Code, Codex, agy/Gemini).
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-1.3.0-blue.svg)](VERSION)
+[![Version](https://img.shields.io/badge/version-1.4.1-blue.svg)](VERSION)
 
 ---
 
@@ -147,7 +147,7 @@ Copy `config/ticket-master.config.example.json` to
 | Field | Description |
 |-------|-------------|
 | `tickets_dir` | Where ticket files live (default: `./tickets`) |
-| `prompts_dir` | Where prompt files live (default: `./prompts`) |
+| `prompts_dir` | Reserved. The `bin/` launchers currently resolve prompts from the repo's own `prompts/` folder; changing this field has no effect yet |
 | `default_language` | Documented default prompt language (`en`/`de`); runtime override via `TM_LANG` |
 | `project_roots[]` | **Your projects** — add name, path, pipeline for each |
 | `providers.claude` | Claude CLI config (`command`, `default_model`, `args`) |

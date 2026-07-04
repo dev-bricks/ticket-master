@@ -79,13 +79,24 @@ LOESUNG / ERGEBNIS
 """
 
 
-def _next_number(queued_dir: Path, datestr: str) -> int:
+# Alle Orte, an denen Tickets desselben Tages liegen koennen (Lebenszyklus:
+# Intake im Root, dann QUEUED/PENDING/.USER/SOLVED). Fuer die Nummernvergabe
+# zaehlen sie ALLE — sonst entstehen doppelte IDs, sobald ein Ticket
+# weiterverschoben wurde.
+_LIFECYCLE_SUBDIRS = ("", "QUEUED", "PENDING", "SOLVED", ".USER")
+
+
+def _next_number(base: Path, datestr: str) -> int:
     """Naechste freie laufende Nummer fuer ein Datum (beruecksichtigt claimed
-    Tickets T-DATE-NN.<HOST>.txt und unclaimed T-DATE-NN.txt)."""
+    Tickets T-DATE-NN.<HOST>.txt und unclaimed T-DATE-NN.txt ueber alle
+    Lebenszyklus-Ordner)."""
     pattern = re.compile(rf"^T-{datestr}-(\d+)(?:\.[A-Za-z0-9_-]+)?\.txt$")
     highest = 0
-    if queued_dir.is_dir():
-        for entry in queued_dir.iterdir():
+    for sub in _LIFECYCLE_SUBDIRS:
+        directory = base / sub if sub else base
+        if not directory.is_dir():
+            continue
+        for entry in directory.iterdir():
             m = pattern.match(entry.name)
             if m:
                 highest = max(highest, int(m.group(1)))
@@ -107,14 +118,23 @@ def create(title: str, body: str, project: str | None = None, priority: str = "m
 
     date_iso = today or datetime.now().strftime("%Y-%m-%d")
     datestr = date_iso.replace("-", "")
-    number = _next_number(queued, datestr)
-    ticket_id = f"T-{datestr}-{number:02d}"
-    target = queued / f"{ticket_id}.txt"
-
-    content = _TICKET_TEMPLATE.format(
-        ticket_id=ticket_id, title=title.strip() or "<ohne Titel>", date=date_iso,
-        priority=priority, pipeline=pipeline, project=project or "<offen>",
-        body=body.strip() or "<keine Beschreibung>",
-    )
-    target.write_text(content, encoding="utf-8")
-    return str(target)
+    number = _next_number(base, datestr)
+    while True:
+        ticket_id = f"T-{datestr}-{number:02d}"
+        target = queued / f"{ticket_id}.txt"
+        content = _TICKET_TEMPLATE.format(
+            ticket_id=ticket_id, title=title.strip() or "<ohne Titel>",
+            date=date_iso, priority=priority, pipeline=pipeline,
+            project=project or "<offen>",
+            body=body.strip() or "<keine Beschreibung>",
+        )
+        try:
+            # Exklusiv anlegen ("x"): schreibt NIE ueber ein bestehendes Ticket.
+            # Vergibt ein paralleler Erzeuger (anderes System, Cloud-Sync)
+            # dieselbe Nummer, kollidiert der zweite hier und zaehlt hoch.
+            with target.open("x", encoding="utf-8") as fh:
+                fh.write(content)
+        except FileExistsError:
+            number += 1
+            continue
+        return str(target)

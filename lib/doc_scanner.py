@@ -85,9 +85,23 @@ def ensure_doc(root: Path, kind: str) -> str:
 
 
 def append_entry(path: Path, text: str) -> None:
-    """Haengt einen Eintrag an, ohne bestehenden Inhalt zu veraendern."""
+    """Haengt einen Eintrag an, ohne bestehenden Inhalt zu veraendern.
+
+    Liest den Bestand strikt als UTF-8: Ist die Datei anders kodiert
+    (z. B. cp1252), wird mit ValueError abgebrochen, statt Zeichen still
+    durch U+FFFD zu ersetzen und den beschaedigten Text zurueckzuschreiben.
+    """
     path = Path(path)
-    existing = path.read_text(encoding="utf-8", errors="replace") if path.is_file() else ""
+    existing = ""
+    if path.is_file():
+        try:
+            existing = path.read_text(encoding="utf-8")
+        except UnicodeDecodeError as exc:
+            raise ValueError(
+                f"{path} ist nicht UTF-8-kodiert ({exc}). Eintrag NICHT "
+                "angehaengt, um den Bestand nicht zu beschaedigen — Datei "
+                "zuerst nach UTF-8 konvertieren."
+            ) from exc
     if existing and not existing.endswith("\n"):
         existing += "\n"
     path.write_text(existing + text.rstrip("\n") + "\n", encoding="utf-8")

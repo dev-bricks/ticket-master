@@ -20,7 +20,7 @@ REQUIRED_PATHS = [
     "prompts/TICKET-MASTER.de.md",
     "config/ticket-master.config.example.json",
     "tickets/_templates/TICKET.txt",
-    "tickets/INTAKE-TRIAGE-LOG.txt",
+    "tickets/_logs/INTAKE-TRIAGE-LOG.txt",
     "tickets/QUEUED/.gitkeep",
     "tickets/PENDING/.gitkeep",
     "tickets/SOLVED/.gitkeep",
@@ -61,7 +61,7 @@ PROMPT_FILES = [
 ]
 
 
-def test_structure():
+def check_structure():
     missing = []
     for rel in REQUIRED_PATHS:
         p = REPO_ROOT / rel
@@ -76,7 +76,7 @@ def test_structure():
     return True
 
 
-def test_config_json():
+def check_config_json():
     cfg = REPO_ROOT / "config" / "ticket-master.config.example.json"
     try:
         with open(cfg, encoding="utf-8") as f:
@@ -88,7 +88,7 @@ def test_config_json():
         return False
 
 
-def test_prompt_clean():
+def check_prompt_clean():
     ok = True
     for prompt_file in PROMPT_FILES:
         text = prompt_file.read_text(encoding="utf-8")
@@ -101,7 +101,7 @@ def test_prompt_clean():
     return ok
 
 
-def test_gitignore_privacy_defaults():
+def check_gitignore_privacy_defaults():
     if not shutil.which("git"):
         print("WARN gitignore — git not found; skipping ignore-rule check")
         return True
@@ -123,7 +123,7 @@ def test_gitignore_privacy_defaults():
     ]
     should_track = [
         "config/ticket-master.config.example.json",
-        "tickets/INTAKE-TRIAGE-LOG.txt",
+        "tickets/_logs/INTAKE-TRIAGE-LOG.txt",
         "tickets/_templates/TICKET.txt",
     ]
 
@@ -153,12 +153,32 @@ def test_gitignore_privacy_defaults():
     return ok
 
 
+# pytest-Wrapper: die check_*-Funktionen geben bool zurueck (fuer main()/CLI);
+# unter pytest zaehlte ein return-Wert frueher IMMER als bestanden
+# (PytestReturnNotNoneWarning) — deshalb hier echte Asserts.
+
+def test_structure():
+    assert check_structure()
+
+
+def test_config_json():
+    assert check_config_json()
+
+
+def test_prompt_clean():
+    assert check_prompt_clean()
+
+
+def test_gitignore_privacy_defaults():
+    assert check_gitignore_privacy_defaults()
+
+
 def main():
     results = [
-        test_structure(),
-        test_config_json(),
-        test_prompt_clean(),
-        test_gitignore_privacy_defaults(),
+        check_structure(),
+        check_config_json(),
+        check_prompt_clean(),
+        check_gitignore_privacy_defaults(),
     ]
     passed = sum(results)
     total = len(results)

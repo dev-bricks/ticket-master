@@ -55,7 +55,7 @@ wiederholt per `SendMessage`. Nach der ersten Aufgabe ist er bereits orientiert
       trivial / braucht Dateilesungen → **Companion spawnen**, Aufgabe zuweisen,
       für Folge-Tickets behalten.
    c. Echter Einzeiler, keine Dateilesungen, wird nicht wiederkehren →
-      **Master-Fast-Lane** + 1 Zeile in `INTAKE-TRIAGE-LOG.txt`.
+      **Master-Fast-Lane** + 1 Zeile in `tickets/_logs/INTAKE-TRIAGE-LOG.txt`.
 
 4. **Groß / parallel / Massen** → Dedizierter Subagent oder Schwarm.
 

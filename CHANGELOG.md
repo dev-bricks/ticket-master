@@ -2,6 +2,43 @@
 
 All notable changes to ticket-master are documented here.
 
+## [1.4.1] — 2026-07-04
+
+### Fixed
+
+- **`lib/ticket_writer.py`: ticket loss and duplicate IDs prevented.**
+  `create()` now opens the target exclusively (`"x"`) and retries with the
+  next number on collision — a concurrent creator (second machine, cloud
+  sync) can no longer silently overwrite an existing ticket. Ticket numbering
+  now scans **all** lifecycle folders (root intake, `QUEUED/`, `PENDING/`,
+  `SOLVED/`, `.USER/`) instead of only `QUEUED/`, so a ticket that was moved
+  on no longer frees up its ID for reuse.
+- **`lib/doc_scanner.py`: `append_entry()` no longer corrupts non-UTF-8
+  documents.** Previously a cp1252-encoded `TODO.md` was read with
+  `errors="replace"` and written back with U+FFFD replacement characters —
+  permanently damaging curated content. Now the read is strict and raises
+  `ValueError` with a clear message, leaving the file untouched.
+- **`tests/test_smoke.py` had no effect under pytest:** the four checks
+  returned booleans, which pytest counts as PASSED regardless of outcome
+  (only a `PytestReturnNotNoneWarning`). They are now `check_*` helpers with
+  real `test_*` assert wrappers; `python tests/test_smoke.py` still works.
+- **Stale references to the pre-1.3.0 log location:** `tests/test_smoke.py`
+  (`REQUIRED_PATHS`, gitignore check) and two `.gitignore` lines still
+  pointed at `tickets/INTAKE-TRIAGE-LOG.txt`; the file moved to
+  `tickets/_logs/` in 1.3.0 — the documented `python tests/test_smoke.py`
+  call failed on a correct checkout. Prompt short references (decision
+  ladder 3c, EN+DE) now use the full `tickets/_logs/…` path too.
+- Version badge (READMEs) and `SECURITY.md` supported-versions table were
+  stuck at 1.3.0/1.0.x; `prompts_dir` in the config example is documented
+  as reserved (the `bin/` launchers do not read it yet).
+- `.gitignore`: ignore local `LOCK*.txt` coordination files.
+
+### Tests
+
+- 7 → 11 green (`py -m pytest tests/`): ID uniqueness across lifecycle
+  folders, no-overwrite collision retry, strict-UTF-8 append (reject + happy
+  path).
+
 ## [1.4.0] — 2026-06-27
 
 ### Added

@@ -52,7 +52,7 @@ After the first task it is already oriented (auth, conventions, structure).
    b. No companion, but domain will produce more tickets / non-trivial / needs
       file reads → **Spawn companion**, assign task, keep for follow-ups.
    c. True one-liner, no file reads, won't recur → **Master fast-lane** + 1 line
-      in `INTAKE-TRIAGE-LOG.txt`.
+      in `tickets/_logs/INTAKE-TRIAGE-LOG.txt`.
 
 4. **Large / parallel / bulk** → Dedicated sub-agent or swarm.
 

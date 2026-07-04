@@ -1,5 +1,25 @@
 # TODO — ticket-master
 
+## Review 2026-07-04 (Modul-Review-Loop, frischer Subagent — Funde gefixt in v1.4.1)
+
+- [x] **(hoch)** `ticket_writer.create()` konnte Tickets still überschreiben
+      (nicht-exklusives `write_text`) → exklusives Anlegen + Retry.
+- [x] **(hoch)** ID-Vergabe scannte nur `QUEUED/` → doppelte IDs bei
+      verschobenen Tickets; jetzt alle Lebenszyklus-Ordner.
+- [x] **(hoch)** `doc_scanner.append_entry()` korrumpierte nicht-UTF-8-Bestand
+      (errors="replace" + Rückschreiben) → strikt lesen, ValueError.
+- [x] **(hoch)** `test_smoke.py` unter pytest wirkungslos (return statt assert)
+      + verwaiste Pfade auf vor-1.3.0-Log-Speicherort (Test schlug bei
+      `python tests/test_smoke.py` real fehl).
+- [x] **(mittel/niedrig)** `prompts_dir` als reserved dokumentiert;
+      SECURITY-Versionsmatrix, Badges, `.gitignore` (`_logs/`-Pfade, LOCK*.txt).
+- [ ] **(Folge)** `prompts_dir` in den `bin/`-Launchern tatsächlich auswerten
+      (oder Feld aus dem Config-Beispiel entfernen).
+- [ ] **(Folge, Design)** Angleichung an die private `_TICKETS`-Instanz prüfen:
+      dort ist die Sammel-Logdatei INTAKE-TRIAGE-LOG deprecated (Multi-System-
+      OneDrive-Kollisionen) zugunsten Audit-Trail PRO Ticket — entscheiden, ob
+      das public Modul dieselbe Konvention übernehmen soll.
+
 ## Roadmap
 
 - [ ] **i18n:** Standardsprachen über DE/EN hinaus erweitern — dem Muster der
