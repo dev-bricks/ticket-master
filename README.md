@@ -14,7 +14,7 @@ management when delegation is not appropriate. Cross-platform (Windows/macOS/Lin
 multi-provider (Claude Code, Codex, agy/Gemini).
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-1.6.0-blue.svg)](VERSION)
+[![Version](https://img.shields.io/badge/version-1.9.0-blue.svg)](VERSION)
 
 ---
 
@@ -156,7 +156,9 @@ Copy `config/ticket-master.config.example.json` to
 | `default_provider` | Provider used when none is specified |
 | `advisor.enabled` | Enable advisor model for high-stakes tickets (score ≥ 35) |
 | `advisor.threshold_score` | Score at which advisor is recommended |
-| `score_thresholds` | Tier boundary scores (tier1\_max, tier2\_max, etc.) |
+| `score_thresholds` | Tier boundary scores (tier1\_max, tier2\_max, etc.) — fallback only, see `router_command` |
+| `router_command` | Optional external multi-model/task router; consulted before the score-fallback formula |
+| `task_db_command` | Optional "later" sink for `woche`/`backlog`-urgency tickets |
 
 ### Example `project_roots` Entry
 
@@ -279,15 +281,54 @@ CHECKPOINT ALPHA:
 
 ---
 
-## Domain Map Generator (optional)
+## Personal-Assistant Expansion (optional): Domain Map, Urgency & Delegation
 
-If you run ticket-master alongside a BACH-style personal-assistant install,
-`lib/domains_generator.py` can generate `config/domains.json` — a domain →
-expert map, cross-referenced against a skill registry to flag which experts
-already exist as standalone skills. It only needs BACH at generation time;
-`config/domains.json` itself is a plain, BACH-free JSON file at runtime. See
-`config/domains.example.json` for the schema and `CHANGELOG.md` (1.6.0) for
-details.
+Three optional layers turn the plain ticket router into a small personal-
+assistant triage console, on top of a BACH-style personal-assistant install:
+
+- **Domain map (1.6.0, extended 1.8.0):** `lib/domains_generator.py` generates
+  `config/domains.json` — a domain → expert map, cross-referenced against a
+  skill registry to flag which experts already exist as standalone skills. It
+  only needs BACH at generation time; `config/domains.json` itself is a
+  plain, BACH-free JSON file at runtime. `experts[]` is provenance/grouping
+  metadata only — the prompt routes directly to the resolved skill(s), never
+  to the expert as an intermediate hop. Since 1.8.0, a stage-2 fuzzy pass
+  (`fuzzy_match_skills()`, plus an optional `--extra-skills-dir` second skill
+  inventory) additionally recognizes experts that govern a whole skill
+  FAMILY (`"status": "teilportiert"`, `"matched_skills"`: a list) rather than
+  a single 1:1 ported skill. See `config/domains.example.json` for the
+  schema.
+- **Urgency axis (1.7.0):** `config/urgency.json` (schema:
+  `config/urgency.example.json`) maps each domain to a default deadline
+  (`sofort` / `heute` / `woche` / `backlog`) plus escalation rules (e.g.
+  published software + a severe bug escalates to `sofort`, dispatching a
+  diagnosis-only sub-agent first when severity is unclear). This axis is
+  **decoupled** from the 5-dimension complexity score — a ticket can be
+  low-complexity and urgent, or high-complexity and not urgent. Borderline
+  calls can optionally consult a configured preference hint
+  (`preference_model_hint.command`); low confidence always means asking the
+  user instead of guessing.
+- **Delegation wiring (1.7.0, extended 1.8.0):** the prompt's intake gate
+  resolves an `ENDPOINT` for a matched domain (via `domains.json`, then
+  optional skill-registry tools, then a GAP flag instead of a silent
+  fallback); model selection prefers an optional external `router_command`
+  over the built-in score-formula fallback; a permission check against
+  `LOCK*.txt` / `LOCK.permissions.json`-style conventions runs before every
+  worker spawn; and `woche`/`backlog`-urgency tickets are handed to an
+  optional `task_db_command` "later" sink instead of spawning a sub-agent.
+  Since 1.8.0, a `"teilportiert"` domain match equips the worker with *all*
+  skills in `matched_skills`, not just the first — an expert can govern a
+  whole skill family (see the domain map section above).
+- **System-knowledge layer (1.9.0):** `config/knowledge.json` (schema:
+  `config/knowledge.example.json`) lists knowledge sources in four
+  categories — `maps` (structural, loaded at boot), `state` (changes during
+  the session, re-checked before every routing decision), `capabilities`
+  (consulted at endpoint/model lookup), and `user_model` (a preference hint,
+  consulted only on genuine borderline calls). Ground rule: trust generated
+  maps over memory — on a conflict, regenerate the map rather than trusting
+  what you recall.
+
+See `CHANGELOG.md` (1.6.0–1.9.0) for details.
 
 ## Requirements
 

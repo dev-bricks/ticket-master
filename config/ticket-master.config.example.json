@@ -50,12 +50,16 @@
     "threshold_score": 35
   },
   "score_thresholds": {
-    "_comment": "Map score ranges to provider tiers. Adjust to match your available models.",
+    "_comment": "FALLBACK ONLY (Phase 3, T-20260704-02): used when 'router_command' below is unset or unreachable. Map score ranges to provider tiers. Adjust to match your available models.",
     "tier1_max": 8,
     "tier2_max": 12,
     "tier3_max": 28,
     "tier4_min": 29
   },
+  "router_command": null,
+  "_comment_router_command": "Phase 3 (T-20260704-02): optional external multi-model/task router (CLI or script). If set, the prompt consults it FIRST for tier/model recommendation; 'score_thresholds' above only applies as a fallback when this is null or the router is unreachable.",
+  "task_db_command": null,
+  "_comment_task_db_command": "Phase 3 (T-20260704-02): optional 'later' sink for tickets whose urgency (see config/urgency.json) is 'woche' or 'backlog' -- a background task-tracking CLI/API entry point. If null, such tickets fall back to DECISION LADDER item 1 (the project's own task management).",
   "usage_limit_warning_percent": 90,
   "logging": {
     "_comment": "Deprecated: intake_log (shared file) removed in 1.5.0 - audit trail lives per ticket (STATUS/LOG/SOLUTION fields)."

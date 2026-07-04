@@ -1,0 +1,53 @@
+{
+  "_comment": "Example config for the urgency axis (Phase 2 of the personal-assistant expansion, T-20260704-02). Copy to config/urgency.json (gitignored, site-specific, same pattern as config/domains.json) and adjust to your own setup. Urgency is DELIBERATELY decoupled from the 5-dimension complexity score in the main prompt (Clarity/Complexity/Creativity/Context/Criticality) -- a ticket can be low-complexity (Tier 1, fast to fix) and still urgent (fix it now), or high-complexity and not urgent (queue it).",
+  "schema": "ticket-master-urgency-v1",
+  "urgency_levels": ["sofort", "heute", "woche", "backlog"],
+  "urgency_definitions": {
+    "sofort": "Dispatch a sub-agent immediately -- or, if severity is unclear, at least a lean diagnosis-only sub-agent to size the issue before committing to a fix. No queueing.",
+    "heute": "Handle within the same day; fine to wait for the next natural check-in.",
+    "woche": "Handle within the week; fine to sit with a companion sub-agent or the later_sink for a while.",
+    "backlog": "No deadline pressure. Route straight to the later_sink (or the project's own task management if none is configured) instead of spawning a sub-agent."
+  },
+  "domain_defaults": {
+    "_comment": "Keyed by domain id from config/domains.json (see domains.example.json for the schema; ids like 'alltag'/'gesundheit'/'buero'/'content'/'versicherung' come from the shipped domains_generator.py's BOSS_DIR_DEFAULTS, not from your own project names). A ticket that doesn't match any domain (e.g. a plain software-project bug) falls through to 'default_fallback_urgency'.",
+    "alltag": "heute",
+    "gesundheit": "heute",
+    "buero": "woche",
+    "versicherung": "woche",
+    "content": "backlog"
+  },
+  "default_fallback_urgency": "woche",
+  "escalation_rules": [
+    {
+      "id": "published-software-severe-bug",
+      "when": "the ticket concerns a published/production software project AND the bug looks severe or breaking",
+      "action": "sofort",
+      "dispatch": "diagnosis_subagent_first",
+      "note": "Don't guess severity from a one-line report. Send a lean, diagnosis-only sub-agent first (reads the relevant code/logs, sizes the bug, reports back compactly); act on its verdict, don't pre-judge."
+    },
+    {
+      "id": "keyword-trigger",
+      "when": "the ticket text contains one of the trigger keywords (case-insensitive)",
+      "keywords": ["KRITISCH", "KAPUTT", "crash", "broken", "down", "data loss", "security", "outage"],
+      "action": "sofort"
+    },
+    {
+      "id": "user-only-model-still-urgent",
+      "when": "the best-fit candidate model/device is only user-launchable (see the MODEL ROUTING / provider table)",
+      "action": "unchanged",
+      "note": "Urgency and routing are independent axes. A 'sofort' ticket that needs a user-only model still goes to .USER/ -- it is just flagged urgent there instead of filed quietly."
+    }
+  ],
+  "preference_model_hint": {
+    "_comment": "Optional consult step for genuinely borderline urgency calls. Point 'command' at whatever theory-of-mind / user-preference tool your harness has (e.g. a 'decide like the user would' skill or command). Leave 'command' null to skip this step entirely -- it is not required for the urgency gate to work.",
+    "enabled": false,
+    "command": null,
+    "usage": "Consult only when the domain default and the escalation rules disagree, or the ticket genuinely sits on a boundary. Do not consult on clear-cut cases -- that wastes the hint's budget and slows the router down."
+  },
+  "low_confidence_policy": "ask_user",
+  "later_sink": {
+    "_comment": "Where 'woche'/'backlog' tickets get filed instead of spawning a sub-agent immediately. Point this at your own background task-tracking CLI/API entry point.",
+    "command": null,
+    "note": "Leave null to fall back to the ticket's DECISION LADDER item 1 (the project's own task management: TODO.md/ROADMAP.md/BUGS.md/etc.)."
+  }
+}

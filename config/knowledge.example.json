@@ -1,0 +1,93 @@
+{
+  "_comment": "Example config for the SYSTEM KNOWLEDGE boot sequence (Phase 4 of the personal-assistant expansion, T-20260704-02). Copy to config/knowledge.json (gitignored, site-specific, same pattern as config/domains.json and config/urgency.json) and point 'target' at your own paths/commands/MCP tools. What makes the ticket-master a personal assistant is not just routing logic, but KNOWLEDGE about the system it routes for: where things are, what state they're in, what it's capable of, and how its user tends to decide.",
+  "schema": "ticket-master-knowledge-v1",
+  "knowledge_sources": {
+    "maps": {
+      "_comment": "Map knowledge: relatively stable structural facts -- where things are, how the system is organised. Load/skim once at session start (STARTUP step c3).",
+      "sources": [
+        {
+          "id": "control-plane-manifest",
+          "kind": "file",
+          "target": "<path to your control-plane / steering manifest, e.g. a top-level MANIFEST.md that indexes locks, tickets, tasks, and shared tooling>",
+          "when_to_read": "session start; re-skim if it feels stale or after a known system change"
+        },
+        {
+          "id": "domain-map",
+          "kind": "file",
+          "target": "config/domains.json",
+          "when_to_read": "session start; consumed again at GATE 1 domain/endpoint resolution for every ticket"
+        },
+        {
+          "id": "project-registry",
+          "kind": "file",
+          "target": "<path to a project/pipeline registry beyond project_roots[], e.g. a MASTER-REGISTRY.md listing all managed repos/releases>",
+          "when_to_read": "session start; useful when a ticket references a project not explicitly listed in project_roots[]"
+        },
+        {
+          "id": "repo-inventory",
+          "kind": "file",
+          "target": "<path to a repo/system inventory, JSON and/or a human-readable index -- e.g. a scanned list of local git repos with branch/dirty/last-commit state>",
+          "when_to_read": "session start; skim for repo state relevant to bug reports (is it even the repo you think it is, is it dirty, what's the last release)"
+        }
+      ]
+    },
+    "state": {
+      "_comment": "State knowledge: changes DURING the session. Check before EVERY routing decision, not just at boot -- a lock taken 10 minutes ago changes the outcome of GATE 1 and the permission check just as much as one that existed at session start.",
+      "sources": [
+        {
+          "id": "lock-overview",
+          "kind": "command",
+          "target": "<a lock-status command/CLI, e.g. a lock-watcher 'status --json', or a cached lock-overview file if no live command exists>",
+          "when_to_read": "before EVERY worker spawn (permission check in section B) and whenever GATE 1 resolves a project/endpoint -- a locked target changes the routing outcome"
+        },
+        {
+          "id": "open-tickets",
+          "kind": "file",
+          "target": "tickets/ (this module's own queue -- QUEUED/, PENDING/, .USER/, open root tickets)",
+          "when_to_read": "before every intake -- avoid creating a duplicate or conflicting ticket for something already in flight"
+        },
+        {
+          "id": "task-queue",
+          "kind": "command",
+          "target": "<a background task-queue query matching 'task_db_command' in config/ticket-master.config.json>",
+          "when_to_read": "before filing a woche/backlog-urgency ticket into the later sink -- check it isn't already queued there"
+        }
+      ]
+    },
+    "capabilities": {
+      "_comment": "Capability knowledge: what the system CAN do and how to reach it. Consult as needed, not necessarily at boot -- above all at the ENDPOINT lookup (GATE 1 step 2) and at model selection (step 4).",
+      "sources": [
+        {
+          "id": "skill-catalog",
+          "kind": "mcp_tool",
+          "target": "<a skill-catalog/find-skill MCP tool or local skill-finder command -- the same one GATE 1 step 2 falls back to>",
+          "when_to_read": "at ENDPOINT lookup (GATE 1, step 2), when domains.json alone did not resolve a skill"
+        },
+        {
+          "id": "mcp-server-inventory",
+          "kind": "mcp_tool",
+          "target": "<an MCP-server-listing tool or command, to discover what's actually reachable in this session>",
+          "when_to_read": "when a ticket needs a capability beyond the configured providers/skills -- check what's available before declaring a GAP"
+        },
+        {
+          "id": "model-router",
+          "kind": "command",
+          "target": "<matches 'router_command' in config/ticket-master.config.json>",
+          "when_to_read": "at model selection (step 4) -- primary source, consulted before the score-fallback formula"
+        }
+      ]
+    },
+    "user_model": {
+      "_comment": "Preference/decision knowledge: how this system's user tends to decide, for cases the rules above don't clearly resolve. Consult ONLY on genuine borderline calls -- see the URGENCY GATE step 4 -- not for every ticket; overusing it wastes its budget and slows the router down.",
+      "sources": [
+        {
+          "id": "preference-model",
+          "kind": "command",
+          "target": "<matches 'preference_model_hint.command' in config/urgency.json -- e.g. a theory-of-mind / 'decide like the user would' skill or command>",
+          "when_to_read": "at the URGENCY GATE (step 4), only when the domain default and escalation rules disagree or the ticket genuinely sits on a boundary"
+        }
+      ]
+    }
+  },
+  "trust_rule": "Trust GENERATED maps over your own memory. If a 'maps' source (domains.json, a repo inventory, a project registry, ...) contradicts what you believe you remember from earlier in the session, the map wins. If you suspect the map itself is stale or wrong, have it regenerated (e.g. re-run lib/domains_generator.py) rather than trusting memory -- memory drifts, generated maps are as current as their last run."
+}

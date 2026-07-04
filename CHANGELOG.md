@@ -2,6 +2,206 @@
 
 All notable changes to ticket-master are documented here.
 
+## [1.9.0] — 2026-07-04
+
+### Added
+
+- **System-knowledge layer (Phase 4 of the personal-assistant expansion,
+  T-20260704-02).** User framing: what makes the ticket-master a personal
+  assistant isn't just routing logic, it's *knowledge about the system it
+  routes for* — where things are, what state they're in, what it's capable
+  of, and how its user tends to decide. `config/knowledge.json` (schema:
+  `config/knowledge.example.json`) lists `knowledge_sources` in four
+  categories, each source carrying `kind` (`file` | `command` | `mcp_tool`)
+  and `target`:
+  - **`maps`** (structural, relatively stable — a control-plane manifest,
+    `domains.json`, a project/repo registry, a system inventory): loaded/
+    skimmed once at session start.
+  - **`state`** (changes during the session — a lock overview, open
+    tickets, a task queue): re-checked before EVERY routing decision, not
+    just at boot.
+  - **`capabilities`** (what the system can do and how to reach it — a
+    skill-catalog command/MCP tool, an MCP server inventory, a model
+    router): consulted as needed, above all at the ENDPOINT lookup and at
+    model selection.
+  - **`user_model`** (a preference/decision hint, e.g. a theory-of-mind
+    tool): consulted only on genuine borderline calls, never routinely.
+  Both prompts (EN/DE) gained a new optional startup step, **(c3) Load
+  SYSTEM KNOWLEDGE**, right before going to Position 0, plus the ground
+  rule: **trust generated maps over your own memory** — on a conflict
+  between what a map says and what you recall from earlier in the session,
+  the map wins; if you suspect the map itself is stale, have it regenerated
+  rather than trusting memory. `config/knowledge.json` is gitignored and
+  site-specific, same pattern as `domains.json`/`urgency.json`.
+- Field-naming note: the config uses `when_to_read` (English) rather than a
+  German field name, for consistency with every other config file in this
+  module (`domains.example.json`, `urgency.example.json`,
+  `ticket-master.config.example.json`), all of which use English field
+  names regardless of prompt language.
+
+### Fixed (advisor review, T-20260704-02)
+
+- **`_tokenize()` silently split German umlauts/ß out of a word.**
+  `[a-zA-Z0-9]+` is ASCII-only, so e.g. `"Fördermittelberater"` tokenized to
+  `{"f", "rdermittelberater"}` instead of one token — a stage-2 token-overlap
+  match against any non-ASCII expert/skill name was silently lost, no error
+  or warning. Fixed to a Unicode-aware `[^\W\d_]+|\d+` (Python's `\w` is
+  Unicode-aware by default), verified against umlauts (ö/ü) and ß.
+  Re-verified against the real installation: no real BACH expert name in
+  this system's boss-agent frontmatter actually contains an umlaut, so
+  regenerating `config/domains.json` with the fix produced byte-identical
+  output (aside from the `generated_at` timestamp) to the pre-fix run — the
+  bug existed but had not yet silently dropped a real match here.
+- **Exact-match exclusion (stage 1 → stage 2 pool) is now GLOBAL, not just
+  per-boss.** Previously, a skill exact-matched to an expert in one boss
+  could still be fuzzy-matched to an unrelated expert in a *different* boss,
+  since the exclusion set was recomputed fresh per boss. `build_domains()`
+  now reads all bosses' frontmatter up front and computes one global
+  exact-match set before any stage-2 matching happens, so a skill claimed
+  exactly anywhere is excluded from fuzzy matching everywhere.
+- Tests: `TestTokenize` (4 cases: two umlaut variants, ß, digit tokenization
+  unaffected), a fuzzy-match regression case with an umlaut expert name, and
+  two new `TestBuildDomains` end-to-end cases (same-boss exclusion — the
+  explicitly requested regression test — and cross-boss exclusion,
+  demonstrating the global-vs-per-boss fix). Full suite: 39/39 green
+  (32 → 39).
+
+### Fixed (fresh-agent retest findings B2–B6, T-20260704-02)
+
+A fresh sub-agent ran both user example tickets end to end ("passed with
+findings"). Prompt-only fixes (both languages where applicable):
+
+- **B2 — GATE 1 couldn't resolve a project outside `project_roots[]`.**
+  Intake and GATE 1 now note that an optional repo/system-inventory `maps`
+  source (see the SYSTEM KNOWLEDGE step) can serve as an additional project
+  anchor before treating GATE 1 as unconfirmed.
+- **B3 — mandatory-read chains weren't assigned to a role.** New rule: a
+  project's own mandatory-read chain (e.g. `CLAUDE.md` pointing further) is
+  read by the WORKER, not the Master — the Master only passes the
+  entry-point pointer in the task (Lean Router principle).
+- **B4 — GATE 3's ">10% usage limit" isn't actually queryable.** Weakened
+  to an explicit best-effort self-assessment (throttling signals, session
+  context) rather than an exact percentage check; harnesses with a real
+  queryable source should reference it instead.
+- **B5 — the keyword-trigger rule and the "diagnose first" rule looked like
+  they could collide.** Made explicit: the keyword rule decides WHEN (now),
+  the severity-unclear rule decides WHAT (a diagnosis sub-agent) — together
+  they are one instruction (dispatch a diagnosis sub-agent immediately), not
+  a conflict.
+- **B6 — tooling note for `maps` lookups.** Broad directory scans over
+  large/cloud-synced folders can be timeout-prone; use targeted read/grep
+  access or a dedicated file tool instead (both prompts, generic; concrete
+  tool name in the private instance).
+- **B1 (no fix needed):** all real experts currently show `"nicht-portiert"`
+  — expected GAP-by-design behaviour until skills are ported, not a bug.
+
+## [1.8.0] — 2026-07-04
+
+### Added
+
+- **Stage-2 (fuzzy) skill matching in `lib/domains_generator.py`
+  (T-20260704-02 follow-up).** Stage 1 (`match_standalone_skill`) is a
+  strict, exact 1:1 provenance link and misses two real cases: an expert
+  that governs a whole skill FAMILY sharing a registry `category` rather
+  than a single ported skill, and skills extracted as standalone but never
+  registered in the main skill registry. `fuzzy_match_skills()` adds a
+  second pass, run only when stage 1 found nothing:
+  - `KEYWORD_CATEGORY_HINTS`: a small, curated keyword-stem table, matched
+    **only against the expert's own name** (never the boss-level
+    description, which is shared verbatim across every expert of the same
+    boss and was found, empirically, to leak matches onto unrelated sibling
+    experts) — mapping to a registry `category` and/or a set of term-stems
+    to substring-match against a component's own id/name/description.
+  - Plain token overlap between the expert's name (role-suffix stripped)
+    and a component's own id/name/description.
+  - Components already claimed by stage 1 for a sibling expert in the same
+    boss are excluded from the fuzzy pool, so a skill cannot end up both
+    exactly matched to one expert and coincidentally fuzzy-matched to
+    another.
+  Results are marked `"status": "teilportiert"` / `"match": "fuzzy"` with a
+  `"matched_skills"` list (as opposed to `"status": "portiert"` /
+  `"match": "exact"` / a single `"standalone_skill"` for stage 1). Verified
+  empirically against a real installation: an expert whose own name
+  contains a hinted keyword stem correctly resolves to its entire matching
+  skill category (double digits of skills), while unrelated experts (no
+  matching stem, no token overlap) correctly stay `"nicht-portiert"` — an
+  earlier version of this heuristic that also matched on the shared
+  boss-level description was found to over-match broadly across a
+  100+-skill corpus and was tightened before release.
+- **`load_extra_skills()` + `--extra-skills-dir` / `TICKET_MASTER_EXTRA_SKILLS_DIR`:**
+  optionally folds a second, independent skill inventory (e.g. a Claude Code
+  `~/.claude/skills/` tree) into the stage-2 fuzzy pool — useful when a
+  skill was extracted as standalone but is absent from the main registry.
+  These entries have no `category`, so they can only match via the
+  `KEYWORD_CATEGORY_HINTS` term-substring path or token overlap, never via
+  category equality. New `source.extra_skills_dir_provided` /
+  `source.extra_skills_scanned` fields in the generated `domains.json`.
+- `config/domains.example.json`: schema extended with `match` /
+  `matched_skills` per expert, and three illustrative entries (exact /
+  fuzzy family / gap).
+- **Wording pass across both prompts (EN/DE) and the private instance
+  clarifying the routing model (user architecture note, T-20260704-02):**
+  `domains.json`'s `experts[]` is provenance/grouping metadata only — the
+  gates read the skill field directly (`standalone_skill` /
+  `matched_skills`), never the expert name as a routing target; there is
+  nothing to "activate". A `"teilportiert"` match equips the worker with
+  **all** skills in `matched_skills`, not just the first. Both prompts also
+  gained an optional, harness-agnostic note that a domain-appropriate worker
+  role/agent type may be selected in addition to the resolved skills, when
+  the harness supports predefined roles.
+- Tests: `tests/test_domains_generator.py` gained `TestFuzzyMatchSkills` (4
+  cases, including the negative case that a generic role suffix alone must
+  not cause a false match), `TestLoadExtraSkills` (3 cases), and two new
+  `TestBuildDomains` end-to-end cases (category-hint stage-2 match; extra
+  skills dir feeding stage 2). Full suite: 32/32 green.
+
+## [1.7.0] — 2026-07-04
+
+### Added
+
+- **Urgency axis (Phase 2 of the personal-assistant expansion,
+  T-20260704-02).** `config/urgency.json` (schema:
+  `config/urgency.example.json`) maps each domain (from `config/domains.json`)
+  to a default deadline — `sofort` / `heute` / `woche` / `backlog` — plus
+  escalation rules. This axis is deliberately **decoupled** from the
+  5-dimension complexity score in the main prompt (Clarity/Complexity/
+  Creativity/Context/Criticality): a ticket can be low-complexity and urgent,
+  or high-complexity and not urgent. Both agent prompts (EN/DE) gained a new
+  **URGENCY GATE** right after GATE 1: read the domain default, check
+  escalation rules (published/production software + a severe bug → `sofort`,
+  dispatching a lean diagnosis-only sub-agent first if severity is unclear;
+  trigger keywords → `sofort`), optionally consult a configured
+  `preference_model_hint.command` on genuine borderline cases, and always ask
+  the user instead of guessing on low confidence
+  (`low_confidence_policy`). `woche`/`backlog` tickets go to an optional
+  `task_db_command` "later" sink instead of spawning a sub-agent.
+- **Delegation wiring (Phase 3 of the personal-assistant expansion,
+  T-20260704-02).** GATE 1 (intake) now also resolves a `DOMAIN`/`ENDPOINT`
+  when `config/domains.json` matches the ticket, in this lookup order: (1)
+  `domains.json` itself (`experts[].standalone_skill` when already
+  `"portiert"`), (2) skill-registry tools if available
+  (`controlcenter_find_skill` MCP tool / a local `skill-finder`-style skill),
+  (3) if neither yields a skill despite a domain/usecase match, flag it as a
+  **GAP** (`ENDPOINT: GAP — no standalone skill yet (<expert>)`) instead of
+  silently falling back — `domains.json`'s `experts[]` is provenance metadata
+  only, not a routing hop; the ticket routes directly to the resolved skill.
+  Model selection now prefers an
+  optional external `router_command` (config field) over the built-in
+  score→tier formula, which is downgraded to an explicit **fallback** (used
+  only when `router_command` is unset or unreachable) — the duplicated
+  scoring logic in the prompt is kept, not removed, since it remains the
+  fallback path. A new permission-check step runs before every worker spawn
+  in section (B): check the target project for `LOCK*.txt` /
+  `LOCK.permissions.json`-style conventions (precedence
+  `deny > ask > allow`; user locks are absolute) if such a system is in use.
+- New template fields `DOMAIN` / `ENDPOINT` / `URGENCY` in
+  `tickets/_templates/TICKET.txt`.
+- New config fields `router_command` / `task_db_command` in
+  `config/ticket-master.config.example.json` (both optional, default `null`).
+- Tests: existing suite re-verified green (23/23) after the prompt/template/
+  config additions; no new BACH-specific or absolute-path strings introduced
+  (checked against `tests/test_smoke.py`'s anonymisation check).
+
 ## [1.6.0] — 2026-07-04
 
 ### Added

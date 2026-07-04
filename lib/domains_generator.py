@@ -8,6 +8,23 @@ agent SKILL.md frontmatter of a BACH installation (`orchestrates.experts`,
 mark it "portiert" (a standalone skill already exists) or "nicht-portiert"
 (still only lives inside BACH).
 
+Stage-2 fuzzy matching (T-20260704-02 follow-up): stage-1 provenance matching
+is a strict, exact 1:1 link and misses experts that govern a whole SKILL
+FAMILY rather than a single ported skill (e.g. a counseling-style expert
+whose skill family has no per-component `provenance` link back to it, only a
+shared registry `category`), and skills that were extracted as standalone
+but never registered in the main skill registry. `fuzzy_match_skills()` adds
+a second pass (keyword/category hints + token overlap, see
+`KEYWORD_CATEGORY_HINTS`) that only runs when stage 1 found nothing, marking
+the result `"status": "teilportiert"` / `"match": "fuzzy"` with a
+`"matched_skills"` list (as opposed to `"portiert"` / `"match": "exact"` /
+a single `"standalone_skill"`). `load_extra_skills()` optionally folds a
+second skill directory (e.g. a Claude Code `~/.claude/skills/` tree) into
+that fuzzy pass via `--extra-skills-dir`. `domains.json`'s per-expert
+`experts[]` entries remain provenance/grouping metadata only — the
+ticket-master prompt routes directly to the resolved skill(s), it does not
+introduce experts as a separate routing hop.
+
 This script is a GENERATOR that runs once on the "origin system" (the machine
 that has BACH installed). Its output, `config/domains.json`, is consumed at
 ticket-master runtime and is itself BACH-free — no BACH path or BACH code is
@@ -48,6 +65,48 @@ BOSS_DIR_DEFAULTS: dict[str, tuple[str, str]] = {
     "production": ("content", "Content & Produktion"),
 }
 _VERSICHERUNG_PATTERN = re.compile(r"versicher", re.IGNORECASE)
+
+# Stage-2 (fuzzy) matching, T-20260704-02 follow-up: generic role-suffix
+# tokens stripped from an expert's own name before token-overlap matching, so
+# e.g. "psycho-berater" contributes the meaningful token "psycho" rather than
+# the near-universal "berater".
+_GENERIC_EXPERT_NAME_TOKENS: set[str] = {
+    "agent", "berater", "beraterin", "verwalter", "verwalterin", "planer",
+    "planerin", "management", "manager", "assistent", "assistentin",
+    "experte", "expertin",
+}
+
+# Optional keyword-stem hints for stage-2 fuzzy matching. Deliberately keyed
+# off the EXPERT'S OWN NAME ONLY, never the boss-level description: that
+# description is shared verbatim across every expert of the same boss, so
+# matching against it would leak one expert's hits onto all of its siblings
+# (empirically observed: a "psychological ... counseling" phrase in a shared
+# boss description would otherwise also credit a purely medical/
+# administrative sibling expert with the whole therapy skill family).
+# Each hint maps a stem to (a) the registry `category` this expert's skill
+# family likely lives under, and (b) a small set of related term-stems to
+# substring-match against a component's own id/name/description — needed for
+# sources like an extra skills dir that have no `category` concept at all.
+# Generic domain vocabulary, not project-specific; extend for your own
+# taxonomy, but keep entries narrow (a few related stems), not broad topic
+# words, to avoid turning stage 2 into a noisy full-text search.
+KEYWORD_CATEGORY_HINTS: dict[str, dict[str, object]] = {
+    "psycho": {"category": "therapy", "terms": {"therap", "counsel", "psycho"}},
+    "therap": {"category": "therapy", "terms": {"therap", "counsel"}},
+    "berat": {"category": "therapy", "terms": {"therap", "counsel", "berat"}},
+    "counsel": {"category": "therapy", "terms": {"therap", "counsel"}},
+}
+
+
+def _tokenize(text: str) -> set[str]:
+    """Unicode-aware tokenizer. `[a-zA-Z0-9]+` would silently split German
+    umlauts/ß out of a word (verified: "Fördermittelberater" ->
+    {"f", "rdermittelberater"}), quietly losing token-overlap matches for
+    non-ASCII expert/skill names. `[^\\W\\d_]+` matches Unicode letters
+    (Python's `\\w` is Unicode-aware by default), `\\d+` matches digit runs,
+    so "Fördermittelberater" stays one token and "gpt4" still splits into
+    letters+digits like before."""
+    return set(re.findall(r"[^\W\d_]+|\d+", text.lower()))
 
 
 def _collect_indented(body: list[str], start: int) -> tuple[list[str], int]:
@@ -208,8 +267,109 @@ def match_standalone_skill(expert_name: str, bach_components: list[dict]) -> dic
     return None
 
 
+def fuzzy_match_skills(expert_name: str, boss_description: str, components: list[dict]) -> list[dict]:
+    """Stage-2 (fuzzy) matching, T-20260704-02 follow-up: an expert governs a
+    whole SKILL FAMILY, not necessarily a single 1:1 standalone skill (e.g.
+    "psycho-berater" governs an entire "therapy" category of skills). Called
+    only when stage-1 exact provenance matching (`match_standalone_skill`)
+    finds nothing. `boss_description` is accepted for signature stability
+    and possible future per-expert context, but is deliberately NOT used as a
+    matching signal here — see the note on `KEYWORD_CATEGORY_HINTS` above for
+    why matching against the (boss-shared) description leaks matches across
+    sibling experts. Matches a component if either:
+      (a) a `KEYWORD_CATEGORY_HINTS` stem is present in the expert's OWN name,
+          and the component's `category` equals that stem's hinted category
+          (works even when the component has no descriptive text, which is
+          common in this registry); or
+      (b) same hint, but the component has no `category` (e.g. an
+          `load_extra_skills()` entry) — matched instead via a substring hit
+          from the hint's `terms` against the component's own id/name/
+          description; or
+      (c) the expert's name tokens (role-suffix stripped, compound German
+          words intentionally NOT split further) overlap with the
+          component's id/name/description tokens.
+    `components` may mix registry entries (with `category`) and entries from
+    `load_extra_skills()` (no `category` — matched via (b)/(c) only). Returns
+    every match, since an expert can legitimately govern several skills.
+    Deliberately conservative: on a real corpus of 100+ candidate skills, a
+    broader token-overlap-on-shared-description heuristic was found to match
+    almost anything (verified empirically) — precision over recall here."""
+    name_tokens = _tokenize(expert_name) - _GENERIC_EXPERT_NAME_TOKENS
+    expert_name_lower = expert_name.lower()
+
+    hinted_categories: set[str] = set()
+    hinted_terms: set[str] = set()
+    for stem, hint in KEYWORD_CATEGORY_HINTS.items():
+        if stem in expert_name_lower:
+            hinted_categories.add(str(hint["category"]))
+            hinted_terms.update(hint["terms"])  # type: ignore[arg-type]
+
+    matches: list[dict] = []
+    seen_ids: set[str] = set()
+    for comp in components:
+        comp_id = comp.get("id")
+        if not comp_id or comp_id in seen_ids:
+            continue
+        category = str(comp.get("category") or "").strip().lower()
+        haystack = " ".join([
+            str(comp.get("id", "")), str(comp.get("name", "")), str(comp.get("description", "")),
+        ]).lower()
+
+        if category and category in hinted_categories:
+            matches.append(comp)
+            seen_ids.add(comp_id)
+            continue
+        if not category and hinted_terms and any(term in haystack for term in hinted_terms):
+            matches.append(comp)
+            seen_ids.add(comp_id)
+            continue
+        comp_tokens = _tokenize(haystack)
+        if name_tokens and (name_tokens & comp_tokens):
+            matches.append(comp)
+            seen_ids.add(comp_id)
+    return matches
+
+
+def load_extra_skills(extra_skills_dir: Path) -> list[dict]:
+    """Loads a second, independent skill inventory (e.g. a Claude Code
+    `~/.claude/skills/` tree) for stage-2 fuzzy matching — useful when a
+    skill has been extracted as standalone but was never (or not yet)
+    registered in the main skill registry (observed empirically: skills like
+    a job-application helper or a self-management skill existed locally but
+    were absent from `components.json`). Reads each
+    `<extra_skills_dir>/<name>/SKILL.md` frontmatter (`name`, `description`)
+    via `parse_frontmatter()`. These entries never carry a `category`, so in
+    `fuzzy_match_skills()` they can only match via token overlap, never via
+    `KEYWORD_CATEGORY_HINTS`. Missing directory / unreadable files are
+    skipped silently — this is a best-effort secondary source, not a
+    required one."""
+    extra_skills_dir = Path(extra_skills_dir)
+    found: list[dict] = []
+    if not extra_skills_dir.is_dir():
+        return found
+    for entry in sorted(extra_skills_dir.iterdir()):
+        if not entry.is_dir():
+            continue
+        skill_file = entry / "SKILL.md"
+        if not skill_file.is_file():
+            continue
+        try:
+            text = skill_file.read_text(encoding="utf-8", errors="replace")
+        except OSError:
+            continue
+        frontmatter = parse_frontmatter(text)
+        found.append({
+            "id": f"claude-skill:{entry.name}",
+            "name": str(frontmatter.get("name", entry.name)),
+            "description": str(frontmatter.get("description", "")),
+            "category": None,
+        })
+    return found
+
+
 def build_domains(agents_dir: Path, registry_components_path: Path | None,
-                   extra_boss_dirs: list[str] | None = None) -> dict:
+                   extra_boss_dirs: list[str] | None = None,
+                   extra_skills_dir: Path | None = None) -> dict:
     agents_dir = Path(agents_dir)
     if not agents_dir.is_dir():
         raise FileNotFoundError(f"BACH agents dir not found: {agents_dir}")
@@ -218,8 +378,18 @@ def build_domains(agents_dir: Path, registry_components_path: Path | None,
     if registry_components_path is not None and Path(registry_components_path).is_file():
         bach_components = load_bach_components(Path(registry_components_path))
 
+    extra_skills: list[dict] = []
+    if extra_skills_dir is not None:
+        extra_skills = load_extra_skills(Path(extra_skills_dir))
+
+    fuzzy_pool = bach_components + extra_skills
+
     boss_dirs = discover_boss_dirs(agents_dir, extra_boss_dirs)
-    domains = []
+
+    # Read every boss's frontmatter once, up front, so the exact-match
+    # exclusion below can be computed GLOBALLY across all bosses/experts
+    # before any fuzzy matching happens -- not just within one boss.
+    boss_data: list[tuple[str, str, str, str, list[str], list[str]]] = []
     for dirname, path in sorted(boss_dirs.items()):
         skill_file = path / "SKILL.md"
         text = skill_file.read_text(encoding="utf-8", errors="replace")
@@ -229,14 +399,59 @@ def build_domains(agents_dir: Path, registry_components_path: Path | None,
         orchestrates = frontmatter.get("orchestrates", {})
         expert_names = orchestrates.get("experts", []) if isinstance(orchestrates, dict) else []
         services = orchestrates.get("services", []) if isinstance(orchestrates, dict) else []
+        boss_data.append((dirname, domain_id, label, description, expert_names, services))
 
-        experts = []
+    # Stage 1 (exact) runs for EVERY expert of EVERY boss first. The
+    # resulting matched skill IDs are excluded from the stage-2 fuzzy pool
+    # GLOBALLY (across all bosses, not just siblings within the same boss) --
+    # otherwise a component could end up "portiert" for one expert here and,
+    # via a coincidental keyword/token overlap, "teilportiert" for an
+    # unrelated expert in a completely different domain.
+    global_exact_matches: dict[tuple[str, str], dict] = {}
+    for dirname, _domain_id, _label, _description, expert_names, _services in boss_data:
         for expert_name in expert_names:
             match = match_standalone_skill(expert_name, bach_components)
+            if match:
+                global_exact_matches[(dirname, expert_name)] = match
+    global_exact_matched_ids = {m["id"] for m in global_exact_matches.values()}
+    fuzzy_pool_available = [c for c in fuzzy_pool if c.get("id") not in global_exact_matched_ids]
+
+    domains = []
+    for dirname, domain_id, label, description, expert_names, services in boss_data:
+        experts = []
+        for expert_name in expert_names:
+            match = global_exact_matches.get((dirname, expert_name))
+            if match:
+                experts.append({
+                    "name": expert_name,
+                    "standalone_skill": match["id"],
+                    "status": "portiert",
+                    "match": "exact",
+                    "matched_skills": [match["id"]],
+                })
+                continue
+
+            # Stage 2 (T-20260704-02 follow-up): keyword/category fuzzy
+            # matching against the registry and/or an extra skills dir. An
+            # expert governs a skill FAMILY, so this can yield several
+            # matches, not just one.
+            fuzzy_matches = fuzzy_match_skills(expert_name, description, fuzzy_pool_available) if fuzzy_pool_available else []
+            if fuzzy_matches:
+                experts.append({
+                    "name": expert_name,
+                    "standalone_skill": None,
+                    "status": "teilportiert",
+                    "match": "fuzzy",
+                    "matched_skills": sorted(c["id"] for c in fuzzy_matches),
+                })
+                continue
+
             experts.append({
                 "name": expert_name,
-                "standalone_skill": match["id"] if match else None,
-                "status": "portiert" if match else "nicht-portiert",
+                "standalone_skill": None,
+                "status": "nicht-portiert",
+                "match": None,
+                "matched_skills": [],
             })
 
         domains.append({
@@ -257,6 +472,8 @@ def build_domains(agents_dir: Path, registry_components_path: Path | None,
             "generator": "lib/domains_generator.py",
             "registry_provided": registry_components_path is not None,
             "bach_components_scanned": len(bach_components),
+            "extra_skills_dir_provided": extra_skills_dir is not None,
+            "extra_skills_scanned": len(extra_skills),
         },
         "domains": domains,
     }
@@ -277,6 +494,16 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument(
         "--extra-boss-dir", action="append", default=[],
         help="Additional boss-agent directory name to check (repeatable).",
+    )
+    parser.add_argument(
+        "--extra-skills-dir",
+        default=os.environ.get("TICKET_MASTER_EXTRA_SKILLS_DIR"),
+        help=(
+            "Optional second skill inventory (e.g. a Claude Code ~/.claude/skills/ "
+            "tree) for stage-2 fuzzy matching, in case a skill was extracted as "
+            "standalone but never registered in the main skill registry. Default: "
+            "none (stage 2 then only uses the registry components)."
+        ),
     )
     parser.add_argument(
         "--output",
@@ -303,7 +530,12 @@ def main(argv: list[str] | None = None) -> int:
         print(f"Skills registry components file not found: {registry_path} — continuing without it.", file=sys.stderr)
         registry_path = None
 
-    result = build_domains(agents_dir, registry_path, args.extra_boss_dir)
+    extra_skills_dir = Path(args.extra_skills_dir) if args.extra_skills_dir else None
+    if extra_skills_dir is not None and not extra_skills_dir.is_dir():
+        print(f"Extra skills dir not found: {extra_skills_dir} — continuing without it.", file=sys.stderr)
+        extra_skills_dir = None
+
+    result = build_domains(agents_dir, registry_path, args.extra_boss_dir, extra_skills_dir)
 
     output_path = Path(args.output)
     output_path.parent.mkdir(parents=True, exist_ok=True)

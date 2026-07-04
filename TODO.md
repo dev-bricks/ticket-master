@@ -40,14 +40,83 @@
       gefunden, da ihr Ordnername variieren kann. Zur Laufzeit ist
       `domains.json` BACH-frei — BACH ist nur Generator-Input, kein
       Runtime-Dependency. Tests: `tests/test_domains_generator.py` (12 Fälle).
-- [ ] **Phase 2 — Dringlichkeitsachse:** sofort/später entkoppelt vom
-      Komplexitäts-Score; Domäne→Frist-Default-Matrix + Nutzer-Präferenzmodell
-      (TOM-lm-Hook; niedrige Konfidenz → eskalieren statt raten).
-- [ ] **Phase 3 — Delegations-Verdrahtung:** Intake-GATE um DOMAENE/ENDPUNKT
-      erweitern; Endpunkte = Standalone-Skills/Module (Lookup via Skill-Registry /
-      `controlcenter_find_skill` / skill-finder); Modellwahl an clutch delegieren
-      (ersetzt die im Prompt duplizierte Score→Tier-Logik); Rechteprüfung
-      (lock-master) vor Delegation; Task-DB (Rinnsal) als „später"-Senke.
+- [x] **Phase 2 — Dringlichkeitsachse:** `config/urgency.json` (Schema:
+      `config/urgency.example.json`) — Domäne→Frist-Default-Matrix
+      (`sofort|heute|woche|backlog`), entkoppelt vom 5-Dim-Komplexitäts-Score.
+      Neues URGENCY-GATE in beiden Prompts (EN/DE) direkt nach GATE 1:
+      Domain-Default lesen, Eskalationsregeln prüfen (veröffentlichte Software
+      + schwerer Bug → sofort, ggf. nur Diagnose-Subagent zuerst;
+      Trigger-Keywords → sofort), optionaler `preference_model_hint.command`
+      bei echten Grenzfällen, niedrige Konfidenz → User fragen
+      (`low_confidence_policy`). `woche`/`backlog` → optionale
+      `task_db_command`-Senke statt Subagent-Spawn.
+- [x] **Phase 3 — Delegations-Verdrahtung:** Intake-GATE (GATE 1) um
+      DOMAIN/ENDPOINT erweitert (Lookup: `domains.json` →
+      `controlcenter_find_skill`/skill-finder → generischer Fallback).
+      Modellwahl bevorzugt optionalen `router_command` vor der
+      Score→Tier-Formel, die zum expliziten Fallback degradiert (Duplikat
+      bewusst NICHT entfernt — bleibt Fallback-Pfad). Neuer
+      Rechteprüfungs-Schritt vor jedem Worker-Spawn in Abschnitt (B):
+      `LOCK*.txt`/`LOCK.permissions.json`-Konventionen (deny>ask>allow,
+      User-Locks absolut). Neue Template-Felder `DOMAIN`/`ENDPOINT`/`URGENCY`,
+      neue Config-Felder `router_command`/`task_db_command`. Details:
+      CHANGELOG 1.7.0. Rückangleichung an die private `_TICKETS`-Instanz
+      (Prompt `_control-center/_prompts/TICKET-MASTER.txt`, Template
+      `_control-center/_TICKETS/_templates/TICKET.txt`) erledigt.
+- [x] **Phase 3 Follow-up (1.8.0) — Stage-2-Fuzzy-Matching:** Empirischer
+      Befund (psycho-berater governs 19x `skill:therapy:*`, ohne
+      Provenance-Link; lokale Skills wie `counseling-basics` fehlen in der
+      Registry) zeigte: strikte 1:1-Provenance (Stage 1) reicht nicht, ein
+      Experte kann eine ganze Skill-FAMILIE regieren. `fuzzy_match_skills()`
+      + `KEYWORD_CATEGORY_HINTS` (nur gegen den Expertennamen, NICHT die
+      geteilte Boss-Beschreibung — sonst Bleed-Over auf Geschwister-Experten,
+      empirisch beobachtet) + optionaler zweiter Skill-Bestand
+      (`load_extra_skills()` / `--extra-skills-dir`). Ergebnis:
+      `"status": "teilportiert"` + `"match": "fuzzy"` +
+      `"matched_skills"`-Liste (Stage-1-Treffer bleiben `"portiert"`/
+      `"exact"`). Bereits stage-1-vergebene Skills werden für Geschwister-
+      Experten aus dem Fuzzy-Pool ausgeschlossen. Beide Prompts (EN/DE) +
+      private Instanz präzisiert: keine Experten-Ebene, GATEs lesen
+      `standalone_skill`/`matched_skills` direkt, Worker bekommt bei
+      `teilportiert` ALLE gelisteten Skills; optionale (harness-abhängige)
+      Worker-Rollen-Wahl generisch im Modul, konkret (Claude-Code-
+      Subagenten) in der privaten Instanz. Tests: 9 neue (32/32 gesamt).
+- [x] **Phase 4 (1.9.0) — Wissens-Schicht:** User-Leitsatz: Was den
+      Ticket-Master zum persönlichen Assistenten macht, ist WISSEN über das
+      System (wo was ist, Routing, MCP-Server, Subsysteme) — nicht nur
+      Routing-Logik. `config/knowledge.json` (Schema:
+      `config/knowledge.example.json`) mit `knowledge_sources` in 4
+      Kategorien (`maps`/`state`/`capabilities`/`user_model`, je
+      `{id, kind: file|command|mcp_tool, target, when_to_read}`). Neuer
+      optionaler Boot-Schritt „(c3) SYSTEM-WISSEN laden" in beiden Prompts
+      (EN/DE) direkt vor Position 0: `maps` beim Boot laden, `state` vor
+      JEDER Routing-Entscheidung neu prüfen (nicht nur beim Boot),
+      `capabilities` bei Endpunkt-/Modell-Lookup, `user_model` nur bei
+      echten Grenzfällen. Grundregel: generierten Karten vertrauen, nicht
+      dem Gedächtnis — bei Widerspruch Karte neu generieren lassen.
+      Feldnamen bewusst englisch (`when_to_read`), konsistent mit den
+      anderen Config-Beispielen des Moduls. Rückangleichung: private
+      Instanz bekam eine konkrete SYSTEM-WISSEN-Sektion im Prompt (statt
+      einer separaten JSON — passend zum bestehenden Muster dieser
+      prosa-basierten Instanz) mit realen Pfaden/Kommandos (MANIFEST.md,
+      domains.json, releases.json+MASTER-REGISTRY.md, repos.json+
+      REPOS-INDEX.md, lock_watcher, _TICKETS, Rinnsal, controlcenter_*,
+      clutch, tom-lm).
+- [x] **Advisor-Review + Abschluss-Retest-Fixes (weiterhin 1.9.0):**
+      Advisor-Auflagen (PFLICHT): `_tokenize()` auf Unicode-fähige Regex
+      umgestellt (Umlaute/ß wurden vorher still zerschnitten); Exact-Match-
+      Exklusion Stage1→Stage2 GLOBAL statt nur pro Boss geführt (Wahl,
+      dokumentiert). Retest-Befunde B2–B6 (frischer Agent, beide
+      User-Beispiele "bestanden mit Befunden"): B2 GATE1-Projektanker über
+      Repo-/System-Inventar-`maps`-Quelle für Projekte außerhalb
+      `project_roots[]`; B3 projekteigene Pflicht-Lektüre-Ketten liest der
+      WORKER, nicht der Master (Lean-Router); B4 GATE3-Nutzungslimit auf
+      Best-Effort-Selbsteinschätzung abgeschwächt (keine verlässliche
+      Quelle); B5 Präzedenzregel für Dringlichkeits-Kollision (Keyword=WANN,
+      Diagnose-zuerst=WAS → zusammen: sofort Diagnose-Subagent); B6
+      Werkzeug-Hinweis gegen Glob-Timeouts über große/cloud-synchronisierte
+      Ordner. B1 kein Fix nötig (erwartetes GAP-Design). Tests: 7 neu
+      (39/39 gesamt).
 
 ## Roadmap
 

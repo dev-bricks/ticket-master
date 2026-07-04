@@ -15,7 +15,7 @@ Delegation nicht sinnvoll ist. Plattformübergreifend (Windows/macOS/Linux),
 multi-provider (Claude Code, Codex, agy/Gemini).
 
 [![Lizenz: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-1.5.0-blue.svg)](VERSION)
+[![Version](https://img.shields.io/badge/version-1.9.0-blue.svg)](VERSION)
 
 ---
 
@@ -157,6 +157,8 @@ $env:TM_LANG = "de"; .\bin\ticket-master.ps1
 | `providers.codex` | Codex-CLI-Konfiguration |
 | `providers.agy` | Gemini-CLI-Konfiguration |
 | `advisor.enabled` | Advisor-Modell für kritische Tickets (Score ≥ 35) aktivieren |
+| `router_command` | Optional: externer Multi-Modell-/Task-Router, primär vor der Score-Fallback-Formel |
+| `task_db_command` | Optional: „später"-Senke für `woche`/`backlog`-Tickets |
 
 ---
 
@@ -240,6 +242,59 @@ kein In-File-Feld, keine Lock-Dateien nötig:
 Ein Rename im selben Verzeichnis ist auf NTFS und den meisten Cloud-Sync-Implementierungen
 atomar. Entsteht eine Konfliktkopie, hat ein System den Claim gewonnen; das andere rollt
 zurück und nimmt das nächste unclaimed Ticket.
+
+---
+
+## Personal-Assistant-Ausbau (optional): Domänen-Map, Dringlichkeit & Delegation
+
+Drei optionale Schichten machen aus dem reinen Ticket-Router eine kleine
+persönliche Assistenz-Triage-Konsole, aufbauend auf einem BACH-artigen
+Personal-Assistant-Install:
+
+- **Domänen-Map (1.6.0, erweitert 1.8.0):** `lib/domains_generator.py`
+  generiert `config/domains.json` — eine Domäne→Experten-Map, gegen eine
+  Skill-Registry abgeglichen, um bereits als Standalone-Skill existierende
+  Experten zu markieren. Nur zur Generierungszeit wird BACH gebraucht;
+  `config/domains.json` selbst ist zur Laufzeit eine reine, BACH-freie
+  JSON-Datei. `experts[]` ist NUR Herkunfts-/Gruppierungs-Metadaten — der
+  Prompt routet direkt auf den/die aufgelösten Skill(s), nie über den
+  Experten als Zwischen-Hop. Seit 1.8.0 erkennt ein Stage-2-Fuzzy-Durchlauf
+  (`fuzzy_match_skills()`, plus optional `--extra-skills-dir` als zweiter
+  Skill-Bestand) zusätzlich Experten, die eine ganze Skill-FAMILIE regieren
+  (`"status": "teilportiert"`, `"matched_skills"`: eine Liste) statt eines
+  einzelnen 1:1-portierten Skills. Schema: `config/domains.example.json`.
+- **Dringlichkeitsachse (1.7.0):** `config/urgency.json` (Schema:
+  `config/urgency.example.json`) ordnet jeder Domäne eine Default-Frist zu
+  (`sofort` / `heute` / `woche` / `backlog`) plus Eskalationsregeln (z.B.
+  eskaliert veröffentlichte Software + ein schwerer Bug auf `sofort` und
+  schickt bei unklarer Schwere zunächst nur einen Diagnose-Subagenten los).
+  Diese Achse ist **entkoppelt** vom 5-Dimensionen-Komplexitäts-Score — ein
+  Ticket kann niedrigen Score haben und trotzdem dringend sein, oder
+  umgekehrt. Grenzfälle können optional einen konfigurierten
+  Präferenz-Hinweis konsultieren (`preference_model_hint.command`); niedrige
+  Konfidenz bedeutet immer: den User fragen statt raten.
+- **Delegations-Verdrahtung (1.7.0, erweitert 1.8.0):** Das Intake-Gate des
+  Prompts löst für eine getroffene Domäne einen `ENDPOINT` auf (über
+  `domains.json`, dann optionale Skill-Registry-Tools, dann eine LÜCKEN-
+  Markierung statt stillem Fallback); die Modellwahl bevorzugt einen
+  optionalen externen `router_command` vor der eingebauten Score-Formel-
+  Fallback-Logik; eine Rechteprüfung gegen `LOCK*.txt`-/
+  `LOCK.permissions.json`-artige Konventionen läuft vor jedem Worker-Spawn;
+  und Tickets mit Dringlichkeit `woche`/`backlog` werden an eine optionale
+  „später"-Senke (`task_db_command`) übergeben, statt einen Subagenten zu
+  spawnen. Seit 1.8.0 bekommt der Worker bei `"teilportiert"` ALLE Skills
+  aus `matched_skills` mit, nicht nur den ersten — ein Experte kann eine
+  ganze Skill-Familie regieren (siehe Domänen-Map-Abschnitt oben).
+- **Wissens-Schicht (1.9.0):** `config/knowledge.json` (Schema:
+  `config/knowledge.example.json`) listet Wissensquellen in vier
+  Kategorien — `maps` (strukturell, beim Boot geladen), `state` (ändert
+  sich während der Session, vor jeder Routing-Entscheidung neu geprüft),
+  `capabilities` (bei Endpunkt-/Modell-Lookup konsultiert) und `user_model`
+  (Präferenz-Hinweis, nur bei echten Grenzfällen). Grundregel: generierten
+  Karten vertrauen, nicht dem Gedächtnis — bei Widerspruch die Karte neu
+  generieren lassen statt der Erinnerung zu vertrauen.
+
+Details siehe `CHANGELOG.md` (1.6.0–1.9.0).
 
 ---
 

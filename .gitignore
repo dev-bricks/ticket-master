@@ -5,6 +5,14 @@ config/ticket-master.config.json
 # lib/domains_generator.py (only the .example is tracked)
 config/domains.json
 
+# Real urgency matrix - site-specific, same pattern as domains.json
+# (only the .example is tracked)
+config/urgency.json
+
+# Real knowledge-source map - site-specific, same pattern as domains.json
+# (only the .example is tracked)
+config/knowledge.json
+
 # Local secrets and credentials
 .env
 .env.*

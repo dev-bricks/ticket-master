@@ -30,11 +30,17 @@ in each `T-….<HOST>.txt`); the shared `tickets/_logs/` intake log is deprecate
 
 ```
 capture  -> structured ticket file + intake-log line
-triage   -> assign to the right project + score (5 dimensions)
+triage   -> assign to the right project (+ optional domain/endpoint) +
+            urgency (decoupled from the 5-dimension score) + score
 route    -> delegate to best provider/sub-agent for an immediate fix,
-            OR file into the project's own task management
+            OR file into the project's own task management / later sink
 back to Position 0 -> wait for the next ticket
 ```
+
+If `config/domains.json` and `config/urgency.json` exist (optional
+personal-assistant expansion, see `config/*.example.json`), the prompt
+resolves a domain/endpoint at intake and gates urgency (`sofort`/`heute`/
+`woche`/`backlog`) before scoring — see the full prompt for the URGENCY GATE.
 
 ## Roles
 

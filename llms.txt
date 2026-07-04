@@ -1,4 +1,4 @@
-## Last-checked: 2026-06-19
+## Last-checked: 2026-07-04
 
 # ticket-master
 
@@ -25,8 +25,14 @@ Canonical repository: https://github.com/dev-bricks/ticket-master
   prompt (English/German) — defines the full routing protocol (lean router principle,
   companion pattern, decision ladder, score formula, processing chain A/B/C,
   position 0).
-- `config/ticket-master.config.example.json`: all configuration fields documented.
-- `tickets/_templates/TICKET.txt`: structured ticket template.
+- `config/ticket-master.config.example.json`: all configuration fields documented,
+  including optional `router_command` (external model router) and `task_db_command`
+  (later-urgency sink).
+- `config/domains.example.json` / `config/urgency.example.json`: optional
+  personal-assistant expansion — domain→endpoint map and domain→deadline default
+  matrix (`sofort`/`heute`/`woche`/`backlog`, decoupled from the 5-dimension score).
+- `tickets/_templates/TICKET.txt`: structured ticket template (includes `DOMAIN`,
+  `ENDPOINT`, `URGENCY` fields).
 - `tickets/_logs/INTAKE-TRIAGE-LOG.txt`: DEPRECATED shared intake log (pre-1.5.0); the audit trail lives per ticket.
 - `bin/ticket-master.sh` / `bin/ticket-master.bat` / `bin/ticket-master.ps1`:
   cross-platform starters.

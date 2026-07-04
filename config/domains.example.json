@@ -1,11 +1,13 @@
 {
-  "_comment": "Example output of lib/domains_generator.py. Copy the generator's real output here as config/domains.json (gitignored, site-specific) after running it against your own BACH install.",
+  "_comment": "Example output of lib/domains_generator.py. Copy the generator's real output here as config/domains.json (gitignored, site-specific) after running it against your own BACH install. 'experts[]' is provenance/grouping metadata only -- the ticket-master prompt routes directly to standalone_skill / matched_skills, never to the expert name itself.",
   "schema": "ticket-master-domains-v1",
   "generated_at": "2026-01-01T00:00:00+00:00",
   "source": {
     "generator": "lib/domains_generator.py",
     "registry_provided": true,
-    "bach_components_scanned": 0
+    "bach_components_scanned": 0,
+    "extra_skills_dir_provided": false,
+    "extra_skills_scanned": 0
   },
   "domains": [
     {
@@ -17,9 +19,28 @@
       "services": [],
       "experts": [
         {
-          "name": "example-expert",
+          "_comment": "Stage 1 (exact): a provenance link was found. Routes directly to this one skill.",
+          "name": "example-expert-exact",
+          "standalone_skill": "skill:example:example-expert-exact",
+          "status": "portiert",
+          "match": "exact",
+          "matched_skills": ["skill:example:example-expert-exact"]
+        },
+        {
+          "_comment": "Stage 2 (fuzzy, since v1.8.0): no single provenance link, but this expert governs a whole skill FAMILY -- matched via KEYWORD_CATEGORY_HINTS/token overlap in lib/domains_generator.py::fuzzy_match_skills(). Route to ALL listed skills, not just the first.",
+          "name": "example-expert-family",
           "standalone_skill": null,
-          "status": "nicht-portiert"
+          "status": "teilportiert",
+          "match": "fuzzy",
+          "matched_skills": ["skill:example:family-a", "skill:example:family-b"]
+        },
+        {
+          "_comment": "Neither stage found anything -- flag as a GAP in the ticket's ENDPOINT field instead of silently falling back.",
+          "name": "example-expert-gap",
+          "standalone_skill": null,
+          "status": "nicht-portiert",
+          "match": null,
+          "matched_skills": []
         }
       ]
     }

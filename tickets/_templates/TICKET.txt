@@ -13,6 +13,14 @@ PROJECT ASSIGNMENT
 PIPELINE:      <e.g. software / research / docs / infra / ...>
 PROJECT_DIR:   <relative or absolute path, or project name>
 CONTROL_FILE:  <CLAUDE.md / README.md / START.md that confirmed GATE1>
+DOMAIN:        <domain id from config/domains.json, or n/a — see URGENCY GATE>
+ENDPOINT:      <standalone skill/module(s) the domain resolved to (a single
+               skill for an exact match, or a comma-separated list for a
+               fuzzy "teilportiert" skill family — see matched_skills in
+               domains.json); n/a if no domain match; or "GAP — no
+               standalone skill yet (<expert>)" if the domain matched but no
+               standalone skill exists yet>
+URGENCY:       <sofort | heute | woche | backlog — see config/urgency.json>
 
 --------------------------------------------------------------
 PROBLEM DESCRIPTION
