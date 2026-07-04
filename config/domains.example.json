@@ -1,0 +1,27 @@
+{
+  "_comment": "Example output of lib/domains_generator.py. Copy the generator's real output here as config/domains.json (gitignored, site-specific) after running it against your own BACH install.",
+  "schema": "ticket-master-domains-v1",
+  "generated_at": "2026-01-01T00:00:00+00:00",
+  "source": {
+    "generator": "lib/domains_generator.py",
+    "registry_provided": true,
+    "bach_components_scanned": 0
+  },
+  "domains": [
+    {
+      "id": "example-domain",
+      "label": "Example Domain",
+      "source_boss": "example-boss-agent",
+      "description": "Example boss agent. Use this skill when: (1) doing thing one, (2) doing thing two.",
+      "usecases": ["doing thing one", "doing thing two"],
+      "services": [],
+      "experts": [
+        {
+          "name": "example-expert",
+          "standalone_skill": null,
+          "status": "nicht-portiert"
+        }
+      ]
+    }
+  ]
+}

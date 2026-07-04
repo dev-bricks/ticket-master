@@ -23,6 +23,32 @@
       in die private laufende Instanz `_scripts/ticket_writer.py` +
       `_scripts/doc_scanner.py` gespiegelt (Lock-Watcher-Tests 8/8 grün).
 
+## Personal-Assistant-Ausbau (entschieden [U 2026-07-04, Decision-Briefing E02/A])
+
+> Ticket-Master wird zum persönlichen Live-Assistenten ausgebaut: er erkennt
+> Nutzer-Usecases, bewertet Dringlichkeit (sofort vs. später) und delegiert an
+> Skills/Module/Modelle. Umsetzungs-Ticket (privat, mit Systemdetails):
+> `_control-center/_TICKETS/T-20260704-02.txt`.
+
+- [x] **Phase 1 — Domänen-Map (generiert):** `lib/domains_generator.py` liest
+      die Boss-Agent-Frontmatter (`orchestrates.experts`) und gleicht sie
+      gegen eine Skill-Registry-`components.json` (`provenance.origin: bach`,
+      `origin_path`) ab → `config/domains.json` (gitignored, generiert;
+      Schema/Beispiel in `config/domains.example.json`). Nicht portierte
+      Experten werden als `"status": "nicht-portiert"` markiert. Die
+      5. Domäne (Versicherung/Finanzen) wird per Namens-/Beschreibungssuche
+      gefunden, da ihr Ordnername variieren kann. Zur Laufzeit ist
+      `domains.json` BACH-frei — BACH ist nur Generator-Input, kein
+      Runtime-Dependency. Tests: `tests/test_domains_generator.py` (12 Fälle).
+- [ ] **Phase 2 — Dringlichkeitsachse:** sofort/später entkoppelt vom
+      Komplexitäts-Score; Domäne→Frist-Default-Matrix + Nutzer-Präferenzmodell
+      (TOM-lm-Hook; niedrige Konfidenz → eskalieren statt raten).
+- [ ] **Phase 3 — Delegations-Verdrahtung:** Intake-GATE um DOMAENE/ENDPUNKT
+      erweitern; Endpunkte = Standalone-Skills/Module (Lookup via Skill-Registry /
+      `controlcenter_find_skill` / skill-finder); Modellwahl an clutch delegieren
+      (ersetzt die im Prompt duplizierte Score→Tier-Logik); Rechteprüfung
+      (lock-master) vor Delegation; Task-DB (Rinnsal) als „später"-Senke.
+
 ## Roadmap
 
 - [ ] **i18n:** Standardsprachen über DE/EN hinaus erweitern — dem Muster der

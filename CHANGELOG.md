@@ -2,6 +2,25 @@
 
 All notable changes to ticket-master are documented here.
 
+## [1.6.0] — 2026-07-04
+
+### Added
+
+- **`lib/domains_generator.py` (Phase 1 of the personal-assistant expansion,
+  T-20260704-02).** Generates `config/domains.json`, a domains registry that
+  maps boss-agent domains to their experts and, where one already exists, the
+  matching standalone skill. Reads a boss-agent `SKILL.md` frontmatter
+  (`orchestrates.experts`, `description`) and cross-references each expert
+  against a skill registry's `components.json`
+  (`provenance.origin: bach` / `origin_path`). Experts without a standalone
+  counterpart are marked `"status": "nicht-portiert"` (to be closed later via
+  a skill-extractor pass). `config/domains.json` is itself BACH-free at
+  runtime — the generator only needs BACH access once, at generation time, and
+  aborts cleanly (leaving any existing file untouched) if the BACH agents
+  directory is not available. Site-specific and gitignored, like
+  `config/ticket-master.config.json`; see `config/domains.example.json` for
+  the schema. Tests: `tests/test_domains_generator.py`.
+
 ## [1.5.0] — 2026-07-04
 
 ### Changed

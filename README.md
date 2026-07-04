@@ -14,7 +14,7 @@ management when delegation is not appropriate. Cross-platform (Windows/macOS/Lin
 multi-provider (Claude Code, Codex, agy/Gemini).
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-1.5.0-blue.svg)](VERSION)
+[![Version](https://img.shields.io/badge/version-1.6.0-blue.svg)](VERSION)
 
 ---
 
@@ -278,6 +278,16 @@ CHECKPOINT ALPHA:
 ```
 
 ---
+
+## Domain Map Generator (optional)
+
+If you run ticket-master alongside a BACH-style personal-assistant install,
+`lib/domains_generator.py` can generate `config/domains.json` — a domain →
+expert map, cross-referenced against a skill registry to flag which experts
+already exist as standalone skills. It only needs BACH at generation time;
+`config/domains.json` itself is a plain, BACH-free JSON file at runtime. See
+`config/domains.example.json` for the schema and `CHANGELOG.md` (1.6.0) for
+details.
 
 ## Requirements
 
