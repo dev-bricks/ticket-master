@@ -47,6 +47,24 @@ You report a bug or change request
 Position 0 — waiting for next ticket
 ```
 
+```mermaid
+graph TD
+    User([User reports bug / change request]) --> Position0[Triage Console: Position 0]
+    Position0 --> GATE1{GATE 1: Intake}
+    GATE1 -->|Create Ticket File| TxtFile[tickets/T-YYYYMMDD-NN.txt]
+    TxtFile --> GATE2{GATE 2: Characterise & Score}
+    GATE2 -->|Calculate Score| Score[Score = 10-Clarity + Complexity + Creativity + Context + Criticality]
+    Score --> Router{Router Decision}
+    
+    Router -->|Tier 1-4 & Urgent| GATE4{GATE 4: Delegate}
+    Router -->|Backlog/Low Urgency| TaskDB[Project Task Board<br>tickets/PENDING/]
+    Router -->|Manual Handoff| UserHandoff[User Intervention<br>tickets/.USER/]
+    
+    GATE4 -->|Success| Solved[tickets/SOLVED/<br>Commit & Verify]
+    GATE4 -->|Fail / Timeout| Fallback[Fallback Chain<br>Next Best Provider]
+    Fallback --> GATE4
+```
+
 Key design principles (how the agent is instructed to behave):
 
 - **Lean Router:** The agent in this mode stays lean. Execution is delegated to

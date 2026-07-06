@@ -48,6 +48,24 @@ Du meldest einen Bug oder Änderungswunsch
 Position 0 — Wartet auf das nächste Ticket
 ```
 
+```mermaid
+graph TD
+    User([Nutzer meldet Bug / Änderungswunsch]) --> Position0[Triage-Konsole: Position 0]
+    Position0 --> GATE1{GATE 1: Intake}
+    GATE1 -->|Ticket-Datei anlegen| TxtFile[tickets/T-YYYYMMDD-NN.txt]
+    TxtFile --> GATE2{GATE 2: Charakteristik & Score}
+    GATE2 -->|Score berechnen| Score[Score = 10-Klarheit + Komplexität + Kreativität + Kontext + Kritikalität]
+    Score --> Router{Routing-Entscheidung}
+    
+    Router -->|Tier 1-4 & Dringend| GATE4{GATE 4: Delegation}
+    Router -->|Backlog / Geringe Dringlichkeit| TaskDB[Projektspezifisches Task-Board<br>tickets/PENDING/]
+    Router -->|Manuelle Bearbeitung| UserHandoff[Manuelle Übergabe<br>tickets/.USER/]
+    
+    GATE4 -->|Erfolg| Solved[tickets/SOLVED/<br>Commit & Verifikation]
+    GATE4 -->|Fehlschlag / Timeout| Fallback[Fallback-Kette<br>Nächstbester Provider]
+    Fallback --> GATE4
+```
+
 ### Kernprinzipien (wie der Agent angewiesen wird, sich zu verhalten)
 
 - **Lean Router:** Der Agent bleibt in diesem Modus schlank. Ausführung wird an
