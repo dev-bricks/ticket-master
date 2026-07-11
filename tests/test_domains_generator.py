@@ -597,6 +597,173 @@ description: >
             found = dg.discover_boss_dirs(agents_dir)
             self.assertIn("versicherungs-kram", found)
 
+    # -- T-20260711-06: stage-2-only "custom"-origin pool + dedup ----------
+    # Intent check (verified against real data before implementing, see
+    # ticket VERLAUF): the origin=="bach" filter is deliberate for stage 1
+    # (match_standalone_skill, "was this ported from BACH") but was
+    # unreflectively inherited by stage 2 (fuzzy) when it was added later.
+    # All affected "custom"-origin skills were individually verified
+    # git-tracked and free of any privacy/maturity marker.
+
+    def _registry_with_custom_component(self, tmp, comp_id="skill:dev:example-tool",
+                                         name="example-tool", origin_path=None):
+        registry_path = Path(tmp) / "components.json"
+        comp = {"id": comp_id, "name": name, "description": "", "category": None,
+                "provenance": {"origin": "custom"}}
+        if origin_path:
+            comp["provenance"]["origin_path"] = origin_path
+        registry_path.write_text(json.dumps({"components": [comp]}), encoding="utf-8")
+        return registry_path
+
+    def test_custom_origin_component_reaches_stage_2_fuzzy_pool(self):
+        """Core T-20260711-06 case: a registered "custom"-origin skill, not
+        mirrored anywhere else, must now be reachable via stage 2 (it was
+        previously invisible to the whole matching pipeline)."""
+        with tempfile.TemporaryDirectory() as tmp:
+            agents_dir = Path(tmp) / "agents"
+            boss_dir = agents_dir / "fixture-boss-custom"
+            boss_dir.mkdir(parents=True)
+            boss_dir.joinpath("SKILL.md").write_text("""---
+name: fixture-boss-custom
+orchestrates:
+  experts: [rotation-check]
+  services: []
+description: >
+  Coordinates rotation-based pipeline checks.
+---
+""", encoding="utf-8")
+            registry_path = self._registry_with_custom_component(
+                tmp, comp_id="skill:dev:rotation-check", name="rotation-check")
+
+            result = dg.build_domains(agents_dir, registry_path, extra_boss_dirs=["fixture-boss-custom"])
+            expert = result["domains"][0]["experts"][0]
+            self.assertEqual(expert["status"], "teilportiert")
+            self.assertEqual(expert["match"], "fuzzy")
+            self.assertEqual(expert["matched_skills"], ["skill:dev:rotation-check"])
+            self.assertEqual(result["source"]["custom_components_scanned"], 1)
+
+    def test_custom_origin_component_never_reaches_stage_1_exact(self):
+        """Grenze 1 (Team-Lead): stage 1 (match_standalone_skill) must stay
+        bach-only. Even if a "custom"-origin component's origin_path
+        happens to reference the expert's own name/folder, it must NOT
+        produce an exact/"portiert" match -- only fuzzy/"teilportiert"."""
+        with tempfile.TemporaryDirectory() as tmp:
+            agents_dir = Path(tmp) / "agents"
+            boss_dir = agents_dir / "fixture-boss-custom2"
+            boss_dir.mkdir(parents=True)
+            boss_dir.joinpath("SKILL.md").write_text("""---
+name: fixture-boss-custom2
+orchestrates:
+  experts: [rotation-check]
+  services: []
+description: >
+  Coordinates rotation-based pipeline checks.
+---
+""", encoding="utf-8")
+            # origin_path deliberately references the expert's own folder
+            # segment, the way a real BACH-extracted component would -- but
+            # this component is origin=="custom", so it must still not
+            # trigger stage 1.
+            registry_path = self._registry_with_custom_component(
+                tmp, comp_id="skill:dev:rotation-check", name="rotation-check",
+                origin_path="system/agents/_experts/rotation-check/CONCEPT.md")
+
+            result = dg.build_domains(agents_dir, registry_path, extra_boss_dirs=["fixture-boss-custom2"])
+            expert = result["domains"][0]["experts"][0]
+            self.assertNotEqual(expert["status"], "portiert")
+            self.assertNotEqual(expert["match"], "exact")
+            self.assertIsNone(expert["standalone_skill"])
+
+    def test_custom_component_deduped_against_extra_skills_by_name(self):
+        """Grenze 2 (Team-Lead): dedup by name BEFORE merging into the fuzzy
+        pool. A "custom"-origin registry component and an extra-skills-dir
+        entry that share the same declared name are the SAME real skill
+        mirrored twice under two different ids -- the registry copy must be
+        dropped so the expert's matched_skills lists the skill exactly
+        ONCE, not twice under two different ids."""
+        with tempfile.TemporaryDirectory() as tmp:
+            agents_dir = Path(tmp) / "agents"
+            boss_dir = agents_dir / "fixture-boss-dedup"
+            boss_dir.mkdir(parents=True)
+            boss_dir.joinpath("SKILL.md").write_text("""---
+name: fixture-boss-dedup
+orchestrates:
+  experts: [rotation-check]
+  services: []
+description: >
+  Coordinates rotation-based pipeline checks.
+---
+""", encoding="utf-8")
+            registry_path = self._registry_with_custom_component(
+                tmp, comp_id="skill:dev:rotation-check", name="rotation-check")
+
+            extra_skills_dir = Path(tmp) / "extra-skills"
+            skill_dir = extra_skills_dir / "rotation-check"
+            skill_dir.mkdir(parents=True)
+            skill_dir.joinpath("SKILL.md").write_text("""---
+name: rotation-check
+description: >
+  Standard rig for rotating pipeline checks.
+---
+""", encoding="utf-8")
+
+            result = dg.build_domains(
+                agents_dir, registry_path, extra_boss_dirs=["fixture-boss-dedup"],
+                extra_skills_dir=extra_skills_dir,
+            )
+            expert = result["domains"][0]["experts"][0]
+            self.assertEqual(expert["status"], "teilportiert")
+            # Exactly ONE id for "rotation-check", the extra_skills_dir one --
+            # the registry duplicate was deduped away before merging.
+            self.assertEqual(expert["matched_skills"], ["claude-skill:rotation-check"])
+            self.assertEqual(result["source"]["custom_components_scanned"], 0)
+
+    def test_bach_origin_matching_unaffected_by_custom_pool(self):
+        """Regression: adding the custom-origin pool must not change
+        existing bach-origin exact-match behaviour (Grenze 1)."""
+        with tempfile.TemporaryDirectory() as tmp:
+            agents_dir = Path(tmp) / "agents"
+            (agents_dir / "fixture-boss-a").mkdir(parents=True)
+            (agents_dir / "fixture-boss-a" / "SKILL.md").write_text(FIXTURE_BOSS_A, encoding="utf-8")
+
+            registry_path = Path(tmp) / "components.json"
+            registry_path.write_text(json.dumps({
+                "components": [
+                    {
+                        "id": "skill:test:fixture-expert-one",
+                        "provenance": {"origin": "bach", "origin_path": "system/agents/_experts/fixture-expert-one/CONCEPT.md"},
+                    },
+                    {
+                        "id": "skill:test:unrelated-custom",
+                        "name": "unrelated-custom",
+                        "description": "",
+                        "provenance": {"origin": "custom"},
+                    },
+                ]
+            }), encoding="utf-8")
+
+            result = dg.build_domains(agents_dir, registry_path, extra_boss_dirs=["fixture-boss-a"])
+            experts_by_name = {e["name"]: e for e in result["domains"][0]["experts"]}
+            self.assertEqual(experts_by_name["fixture-expert-one"]["status"], "portiert")
+            self.assertEqual(experts_by_name["fixture-expert-one"]["match"], "exact")
+            self.assertEqual(experts_by_name["fixture-expert-one"]["matched_skills"], ["skill:test:fixture-expert-one"])
+            self.assertEqual(result["source"]["custom_components_scanned"], 1)
+
+
+class TestLoadCustomComponents(unittest.TestCase):
+    def test_filters_to_custom_origin_only(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            registry_path = Path(tmp) / "components.json"
+            registry_path.write_text(json.dumps({
+                "components": [
+                    {"id": "skill:a:bach-one", "provenance": {"origin": "bach"}},
+                    {"id": "skill:b:custom-one", "provenance": {"origin": "custom"}},
+                    {"id": "skill:c:custom-two", "provenance": {"origin": "custom"}},
+                ]
+            }), encoding="utf-8")
+            found = dg.load_custom_components(registry_path)
+            self.assertEqual({c["id"] for c in found}, {"skill:b:custom-one", "skill:c:custom-two"})
+
 
 if __name__ == "__main__":
     unittest.main()

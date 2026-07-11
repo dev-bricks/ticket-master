@@ -268,10 +268,37 @@ def extract_usecases(description: str) -> list[str]:
 def load_bach_components(registry_components_path: Path) -> list[dict]:
     """Loads a skill-registry `components.json` and returns only the entries
     with `provenance.origin == "bach"` (candidates for expert-to-skill
-    matching)."""
+    matching). Used for BOTH stage 1 (exact provenance) and stage 2 (fuzzy).
+    Stage 1's use of this bach-only scope is deliberate and documented
+    (T-20260704-02 Phase 1, commit a8cbf1b): it answers "has this BACH
+    expert already been extracted as its own standalone skill" -- a
+    "custom"-origin skill was never a BACH expert, so it cannot answer that
+    question and MUST stay out of stage 1 (T-20260711-06 decision). See
+    `load_custom_components()` for the separate, stage-2-only pool."""
     data = json.loads(Path(registry_components_path).read_text(encoding="utf-8"))
     components = data.get("components", [])
     return [c for c in components if (c.get("provenance") or {}).get("origin") == "bach"]
+
+
+def load_custom_components(registry_components_path: Path) -> list[dict]:
+    """Loads registry entries with `provenance.origin == "custom"` (locally
+    authored skills, never extracted from BACH) -- T-20260711-06. Unlike
+    `load_bach_components()`, this pool is STAGE-2-ONLY (fuzzy matching):
+    `match_standalone_skill()` (stage 1) is never called with it, deliberately
+    -- stage 1's "was this ported from BACH" question does not apply to
+    skills that never had a BACH origin in the first place. Verified before
+    introducing this pool (T-20260711-06 intent check): every "custom"-origin
+    component that reaches this pool is git-tracked and carries no privacy/
+    maturity marker in its own frontmatter (unlike the separate, unrelated
+    `.gitignore` privacy block covering skills like `foerderplaner` and
+    `swarm-operations`, which never appear in the registry at all -- see
+    T-20260711-03). `build_domains()` still deduplicates the result against
+    `load_extra_skills()` entries by name before merging into the fuzzy pool,
+    since the same real skill can otherwise appear twice under two different
+    ids (a registry id and a `claude-skill:` id)."""
+    data = json.loads(Path(registry_components_path).read_text(encoding="utf-8"))
+    components = data.get("components", [])
+    return [c for c in components if (c.get("provenance") or {}).get("origin") == "custom"]
 
 
 def _expert_name_variants(name: str) -> set[str]:
@@ -440,14 +467,40 @@ def build_domains(agents_dir: Path, registry_components_path: Path | None,
         raise FileNotFoundError(f"BACH agents dir not found: {agents_dir}")
 
     bach_components: list[dict] = []
+    custom_components: list[dict] = []
     if registry_components_path is not None and Path(registry_components_path).is_file():
         bach_components = load_bach_components(Path(registry_components_path))
+        custom_components = load_custom_components(Path(registry_components_path))
 
     extra_skills: list[dict] = []
     if extra_skills_dir is not None:
         extra_skills = load_extra_skills(Path(extra_skills_dir))
 
-    fuzzy_pool = bach_components + extra_skills
+    # Dedup BEFORE merging (T-20260711-06, team-lead condition: solve dedup
+    # first or don't expand the pool at all). A "custom"-origin registry
+    # component can be the SAME real skill as an `extra_skills_dir` entry,
+    # just mirrored to a second location (e.g. a registry skill also
+    # deployed to a Claude Code `~/.claude/skills/` tree) -- under a
+    # DIFFERENT id in each source (a registry id like "skill:dev:rotation-
+    # check" vs. `load_extra_skills()`'s "claude-skill:rotation-check").
+    # `seen_ids` in `fuzzy_match_skills()` dedupes by id, so two different
+    # ids for the same real skill would both survive and produce a doubled
+    # `matched_skills` entry for one expert. Dedup by the skill's own
+    # declared `name` (case-insensitive) instead of id, since `name` is the
+    # semantic identity that stays consistent across both sources while the
+    # id's source-specific prefix does not. If a custom-origin skill's name
+    # is already present via `extra_skills`, the extra_skills copy wins and
+    # the registry duplicate is dropped before it ever reaches the pool.
+    extra_skill_names = {str(e.get("name", "")).strip().lower() for e in extra_skills}
+    custom_components = [
+        c for c in custom_components
+        if str(c.get("name", "")).strip().lower() not in extra_skill_names
+    ]
+
+    # Stage 2 (fuzzy) only: `custom_components` is deliberately NOT added to
+    # `bach_components` and never passed to `match_standalone_skill()` (see
+    # `load_custom_components()` docstring) -- it only feeds the fuzzy pool.
+    fuzzy_pool = bach_components + custom_components + extra_skills
 
     boss_dirs = discover_boss_dirs(agents_dir, extra_boss_dirs)
 
@@ -537,6 +590,7 @@ def build_domains(agents_dir: Path, registry_components_path: Path | None,
             "generator": "lib/domains_generator.py",
             "registry_provided": registry_components_path is not None,
             "bach_components_scanned": len(bach_components),
+            "custom_components_scanned": len(custom_components),
             "extra_skills_dir_provided": extra_skills_dir is not None,
             "extra_skills_scanned": len(extra_skills),
         },
