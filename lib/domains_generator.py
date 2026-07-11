@@ -322,16 +322,30 @@ def fuzzy_match_skills(expert_name: str, boss_description: str, components: list
           from the hint's `terms` against the component's own id/name/
           description; or
       (c) the expert's name tokens (role-suffix stripped) exactly overlap
-          with the component's id/name/description tokens; or
+          with the component's own id/name tokens (role-suffix stripped);
+          or
       (d) a component's own id/name token (role-suffix stripped, length-
           guarded) is a substring of an expert-name token or vice versa —
           bridges German compounds written as one word on the expert side
           against a hyphenated/split skill name (T-20260711-01, see
-          `_compound_overlap()`). Deliberately scoped to id/name only, NOT
-          the full description: the bug this closes is a name<->name
-          mismatch, and running substring matching over free-text
-          description prose (rather than exact/hint-based matching, which
-          already does) is where false positives would come from.
+          `_compound_overlap()`).
+    Cases (c) and (d) are deliberately scoped to the component's id/name
+    only, NOT its free-text description (T-20260711-05 -- case (c) used to
+    run over the full id+name+description haystack, which produced false
+    positives whenever an expert's own name happened to be a common English
+    word appearing incidentally somewhere in an unrelated component's prose,
+    e.g. expert "report_generator" against a component whose description
+    merely mentions a "Bug-Report-Template". Empirically verified against
+    the real BACH+skill-registry corpus (T-20260711-04/-05 diagnostics):
+    no currently-legitimate match relies on a description-only token in
+    case (c) -- every real hit already goes through id/name, a category
+    hint (a), or a `hinted_terms` substring (b), all of which still
+    intentionally read the description). Case (b) is a narrow exception
+    that KEEPS reading the description on purpose (see
+    `test_token_overlap_on_shared_description_word`): it is gated by a
+    `KEYWORD_CATEGORY_HINTS` stem match on the expert's own name first, so
+    it cannot fire on an arbitrary shared word the way unguarded case (c)
+    could.
     `components` may mix registry entries (with `category`) and entries from
     `load_extra_skills()` (no `category` — matched via (b)/(c)/(d) only).
     Returns every match, since an expert can legitimately govern several
@@ -368,14 +382,13 @@ def fuzzy_match_skills(expert_name: str, boss_description: str, components: list
             matches.append(comp)
             seen_ids.add(comp_id)
             continue
-        comp_tokens = _tokenize(haystack)
-        if name_tokens and (name_tokens & comp_tokens):
-            matches.append(comp)
-            seen_ids.add(comp_id)
-            continue
         id_name_tokens = _tokenize(
             " ".join([str(comp.get("id", "")), str(comp.get("name", ""))])
         ) - _GENERIC_EXPERT_NAME_TOKENS
+        if name_tokens and (name_tokens & id_name_tokens):
+            matches.append(comp)
+            seen_ids.add(comp_id)
+            continue
         if name_tokens and id_name_tokens and _compound_overlap(name_tokens, id_name_tokens):
             matches.append(comp)
             seen_ids.add(comp_id)

@@ -286,6 +286,79 @@ class TestFuzzyMatchSkills(unittest.TestCase):
         matched_ids = {m["id"] for m in matches}
         self.assertEqual(matched_ids, {"skill:therapy:act-techniken", "skill:therapy:psychoedukation"})
 
+    # -- T-20260711-05: case (c) exact-overlap scoped to id/name only ------
+    # (previously ran over the full id+name+description haystack, so an
+    # expert whose own name happened to be a common English word matched any
+    # component whose free-text description mentioned that word in an
+    # unrelated context). Four real cases from T-20260711-04 regeneration.
+
+    def test_case_c_ignores_description_only_report_token(self):
+        """report_generator must NOT match a component whose description
+        merely contains "report" in an unrelated phrase ("Bug-Report-
+        Template"); id/name carry no overlap."""
+        components = [{
+            "id": "claude-skill:bugfix-protocol",
+            "name": "bugfix-protocol",
+            "description": "Systematisches Debugging-Protokoll mit Bug-Report-Template.",
+            "category": None,
+        }]
+        matches = dg.fuzzy_match_skills("report_generator", "Foerderbericht-Generierung.", components)
+        self.assertEqual(matches, [])
+
+    def test_case_c_ignores_description_only_generator_token(self):
+        """report_generator/worksheet_generator must NOT match a component
+        whose description merely mentions "newspaper_generator.py"."""
+        components = [{
+            "id": "claude-skill:tageszeitung",
+            "name": "tageszeitung",
+            "description": "Portiert aus dem BACH-Newssystem (news.py + newspaper_generator.py).",
+            "category": None,
+        }]
+        matches = dg.fuzzy_match_skills("worksheet_generator", "Generates worksheets.", components)
+        self.assertEqual(matches, [])
+
+    def test_case_c_ignores_description_only_generic_buero_bewerbung_words(self):
+        """report_generator/worksheet_generator must NOT match "buero" or
+        "bewerbungsexperte" purely because their descriptions happen to
+        contain "generator"/"generiert"-like fragments; neither the expert
+        name nor these components' own id/name overlap."""
+        components = [
+            {"id": "claude-skill:buero", "name": "buero",
+             "description": "Bewerbungsmanagement, Berichtsgenerierung und Office-Verwaltung.",
+             "category": None},
+            {"id": "claude-skill:bewerbungsexperte", "name": "bewerbungsexperte",
+             "description": "Generiert ASCII-Lebenslaeufe aus einer SQLite-Datenbank.",
+             "category": None},
+        ]
+        matches = dg.fuzzy_match_skills("report_generator", "Foerderbericht-Generierung.", components)
+        self.assertEqual(matches, [])
+
+    def test_case_c_ignores_description_only_health_token(self):
+        """health_import must NOT match a component whose description
+        merely contains the word "health" in an unrelated context."""
+        components = [{
+            "id": "claude-skill:rotation-check",
+            "name": "rotation-check",
+            "description": "Standard-Geruest fuer rotierende Pipeline-Checks ueber Projekt-Health.",
+            "category": None,
+        }]
+        matches = dg.fuzzy_match_skills("health_import", "Medizinische Dokumentenverarbeitung.", components)
+        self.assertEqual(matches, [])
+
+    def test_case_c_still_matches_on_real_id_name_overlap(self):
+        """Sanity check: case (c) must still fire when the overlap is in
+        id/name, not just description -- the scoping must not have gutted
+        the mechanism entirely."""
+        components = [{
+            "id": "claude-skill:textproduction",
+            "name": "textproduction",
+            "description": "Unrelated free text that says nothing about the match.",
+            "category": None,
+        }]
+        matches = dg.fuzzy_match_skills("textproduction", "Content creation agent.", components)
+        self.assertEqual(len(matches), 1)
+        self.assertEqual(matches[0]["id"], "claude-skill:textproduction")
+
 
 class TestLoadExtraSkills(unittest.TestCase):
     def test_loads_frontmatter_from_extra_skills_dir(self):
