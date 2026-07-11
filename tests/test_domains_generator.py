@@ -191,6 +191,101 @@ class TestFuzzyMatchSkills(unittest.TestCase):
         matches = dg.fuzzy_match_skills("foerderplaner", "Plans funding applications.", components)
         self.assertEqual(matches, [])
 
+    # -- T-20260711-01: German compound words don't split on their own -----
+    # ("haushaltsmanagement" is one token; the matching skill's name splits
+    # on a hyphen into {"haushalt", "manager"}), so plain set-intersection
+    # token overlap misses the match. `_compound_overlap()` bridges this via
+    # length-guarded substring matching, scoped to the component's id/name
+    # (not free-text description, to keep precision high).
+
+    def test_compound_word_matches_hyphenated_skill_name(self):
+        """Empirical case (T-20260711-01): expert "haushaltsmanagement" vs.
+        real skill "haushalt-manager" -- exact token overlap finds nothing
+        ({"haushaltsmanagement"} vs {"haushalt", "manager"}), the compound
+        bridge must find it via the substantive "haushalt" fragment."""
+        components = [{
+            "id": "claude-skill:haushalt-manager",
+            "name": "haushalt-manager",
+            "description": "Unterstuetzt bei der Organisation von Haushaltsroutinen.",
+            "category": None,
+        }]
+        matches = dg.fuzzy_match_skills("haushaltsmanagement", "Manages household tasks.", components)
+        self.assertEqual(len(matches), 1)
+        self.assertEqual(matches[0]["id"], "claude-skill:haushalt-manager")
+
+    def test_compound_word_matches_prefix_skill_name(self):
+        """Empirical case (T-20260711-01): expert "gesundheitsverwalter" vs.
+        real skill "gesundheit" -- the substantive "gesundheit" is a prefix
+        of the compound, "verwalter" is the (generic, stripped) role suffix."""
+        components = [{
+            "id": "claude-skill:gesundheit",
+            "name": "gesundheit",
+            "description": "Unterstuetzt bei der Verwaltung von Medikamentenplaenen.",
+            "category": None,
+        }]
+        matches = dg.fuzzy_match_skills("gesundheitsverwalter", "Manages health records.", components)
+        self.assertEqual(len(matches), 1)
+        self.assertEqual(matches[0]["id"], "claude-skill:gesundheit")
+
+    def test_compound_bridge_does_not_fire_on_unrelated_clean_token(self):
+        """Negative case: "steuer-agent" and "foerderplaner" are already
+        clean single tokens (no compound to split) with NO matching skill in
+        the real inventory (verified 2026-07-11: absent from both the skill
+        registry and the extra-skills-dir). The compound bridge must not
+        manufacture a match against an unrelated skill just because it scans
+        substrings -- "kein Overfitting, lieber kein Match als ein falscher
+        Skill-Endpunkt" (T-20260711-01)."""
+        components = [{
+            "id": "claude-skill:buero",
+            "name": "buero",
+            "description": "Unterstuetzt bei Buero-Aufgaben: Bewerbungsmanagement, Berichtsgenerierung.",
+            "category": None,
+        }]
+        matches = dg.fuzzy_match_skills("steuer-agent", "Handles tax filings and receipts.", components)
+        self.assertEqual(matches, [])
+
+    def test_compound_bridge_does_not_use_description_text(self):
+        """The compound bridge is scoped to id/name only. A component whose
+        FREE-TEXT DESCRIPTION happens to contain a compound-overlapping
+        fragment, but whose id/name does not, must not match -- otherwise
+        the bridge would degrade into the same noisy full-text search the
+        existing docstring explicitly rejects for stage 2."""
+        components = [{
+            "id": "claude-skill:unrelated",
+            "name": "unrelated",
+            "description": "Verwaltet einen Haushalt nebenbei in der Beschreibung.",
+            "category": None,
+        }]
+        matches = dg.fuzzy_match_skills("haushaltsmanagement", "Manages household tasks.", components)
+        self.assertEqual(matches, [])
+
+    def test_compound_bridge_rejects_short_generic_fragment(self):
+        """Regression (T-20260711-04, real data): expert "worksheet_generator"
+        vs. unrelated component "genogram-work" -- both happen to contain the
+        4-char substring "work", but that is a coincidental fragment, not a
+        semantic match. MIN_COMPOUND_TOKEN_LEN=6 must reject this; a lower
+        threshold (originally 4) let it through, producing a wrong endpoint
+        for a real BACH expert once orchestrates.experts was completed."""
+        components = [{
+            "id": "skill:therapy:genogram-work",
+            "name": "genogram-work",
+            "description": "",
+            "category": "therapy",
+        }]
+        matches = dg.fuzzy_match_skills("worksheet_generator", "Generates worksheets.", components)
+        self.assertEqual(matches, [])
+
+    def test_psycho_berater_category_hint_still_wins_over_compound_bridge(self):
+        """Regression: psycho-berater's existing KEYWORD_CATEGORY_HINTS match
+        must not be lost or altered by the new compound-overlap path."""
+        matches = dg.fuzzy_match_skills(
+            "psycho-berater",
+            "Coordinates health management and psychological counseling experts.",
+            self._therapy_components(),
+        )
+        matched_ids = {m["id"] for m in matches}
+        self.assertEqual(matched_ids, {"skill:therapy:act-techniken", "skill:therapy:psychoedukation"})
+
 
 class TestLoadExtraSkills(unittest.TestCase):
     def test_loads_frontmatter_from_extra_skills_dir(self):

@@ -76,6 +76,42 @@ _GENERIC_EXPERT_NAME_TOKENS: set[str] = {
     "experte", "expertin",
 }
 
+# Stage-2 compound-word bridge (T-20260711-01): `_tokenize()` only splits on
+# non-letter boundaries, so a German compound written as ONE word (e.g. the
+# expert name "haushaltsmanagement") never breaks into {"haushalt",
+# "management"} the way a hyphenated skill name ("haushalt-manager") does.
+# Plain set-intersection token overlap then finds nothing even though the
+# expert and skill clearly refer to the same thing. `_compound_overlap()`
+# below bridges this with a length-guarded substring test instead of a real
+# compound splitter (stdlib-only, no German morphology dependency available).
+# Length threshold avoids short/generic fragments ("in", "der", "test")
+# matching almost anything. 4 was tried first and empirically proved too low
+# (T-20260711-04 regression, real data): "work" (4 chars) bridged the expert
+# "worksheet_generator" to the unrelated therapy skill "genogram-work" purely
+# because both contain the substring "work" -- a coincidental fragment, not a
+# semantic match. 6 keeps every verified real compound case comfortably clear
+# (haushalt=8, gesundheit=10, transkription=13) while excluding short/generic
+# English fragments like "work", "team", "plan", "data", "file".
+_MIN_COMPOUND_TOKEN_LEN = 6
+
+
+def _compound_overlap(name_tokens: set[str], comp_tokens: set[str]) -> bool:
+    """True if some sufficiently long component token is a substring of some
+    expert-name token, or vice versa. Both token sets are expected to already
+    have `_GENERIC_EXPERT_NAME_TOKENS` removed by the caller, so a purely
+    generic fragment (e.g. "manager") can't bridge two otherwise-unrelated
+    compounds on its own."""
+    for nt in name_tokens:
+        if len(nt) < _MIN_COMPOUND_TOKEN_LEN:
+            continue
+        for ct in comp_tokens:
+            if len(ct) < _MIN_COMPOUND_TOKEN_LEN:
+                continue
+            if ct in nt or nt in ct:
+                return True
+    return False
+
+
 # Optional keyword-stem hints for stage-2 fuzzy matching. Deliberately keyed
 # off the EXPERT'S OWN NAME ONLY, never the boss-level description: that
 # description is shared verbatim across every expert of the same boss, so
@@ -285,15 +321,24 @@ def fuzzy_match_skills(expert_name: str, boss_description: str, components: list
           `load_extra_skills()` entry) — matched instead via a substring hit
           from the hint's `terms` against the component's own id/name/
           description; or
-      (c) the expert's name tokens (role-suffix stripped, compound German
-          words intentionally NOT split further) overlap with the
-          component's id/name/description tokens.
+      (c) the expert's name tokens (role-suffix stripped) exactly overlap
+          with the component's id/name/description tokens; or
+      (d) a component's own id/name token (role-suffix stripped, length-
+          guarded) is a substring of an expert-name token or vice versa —
+          bridges German compounds written as one word on the expert side
+          against a hyphenated/split skill name (T-20260711-01, see
+          `_compound_overlap()`). Deliberately scoped to id/name only, NOT
+          the full description: the bug this closes is a name<->name
+          mismatch, and running substring matching over free-text
+          description prose (rather than exact/hint-based matching, which
+          already does) is where false positives would come from.
     `components` may mix registry entries (with `category`) and entries from
-    `load_extra_skills()` (no `category` — matched via (b)/(c) only). Returns
-    every match, since an expert can legitimately govern several skills.
-    Deliberately conservative: on a real corpus of 100+ candidate skills, a
-    broader token-overlap-on-shared-description heuristic was found to match
-    almost anything (verified empirically) — precision over recall here."""
+    `load_extra_skills()` (no `category` — matched via (b)/(c)/(d) only).
+    Returns every match, since an expert can legitimately govern several
+    skills. Deliberately conservative: on a real corpus of 100+ candidate
+    skills, a broader token-overlap-on-shared-description heuristic was found
+    to match almost anything (verified empirically) — precision over recall
+    here."""
     name_tokens = _tokenize(expert_name) - _GENERIC_EXPERT_NAME_TOKENS
     expert_name_lower = expert_name.lower()
 
@@ -325,6 +370,13 @@ def fuzzy_match_skills(expert_name: str, boss_description: str, components: list
             continue
         comp_tokens = _tokenize(haystack)
         if name_tokens and (name_tokens & comp_tokens):
+            matches.append(comp)
+            seen_ids.add(comp_id)
+            continue
+        id_name_tokens = _tokenize(
+            " ".join([str(comp.get("id", "")), str(comp.get("name", ""))])
+        ) - _GENERIC_EXPERT_NAME_TOKENS
+        if name_tokens and id_name_tokens and _compound_overlap(name_tokens, id_name_tokens):
             matches.append(comp)
             seen_ids.add(comp_id)
     return matches
