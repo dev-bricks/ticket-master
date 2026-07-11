@@ -1,0 +1,42 @@
+{
+  "schema": "ellmos.module.v2",
+  "id": "ticket-master",
+  "display_name": "ticket-master",
+  "category": "control",
+  "kind": "workflow",
+  "status": "active",
+  "visibility": "public-candidate",
+  "provides": [
+    "control.tickets",
+    "workflow.ticket-triage"
+  ],
+  "requires": [],
+  "optional": [
+    "tasks.default"
+  ],
+  "conflicts": [],
+  "surfaces": [
+    "library",
+    "cli",
+    "workflow"
+  ],
+  "state": {
+    "ownership": "external",
+    "location": "project"
+  },
+  "boundaries": {
+    "network": "none",
+    "data": "user-local",
+    "platforms": [
+      "windows",
+      "macos",
+      "linux"
+    ]
+  },
+  "source_of_truth": {
+    "type": "local-directory",
+    "path": ".",
+    "repository": null
+  },
+  "adapters": []
+}
