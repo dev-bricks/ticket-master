@@ -2,6 +2,14 @@
 
 All notable changes to ticket-master are documented here.
 
+## [Unreleased]
+
+### Security
+
+- Hardened local repository hygiene for additional credential and runtime data
+  names: `.pypirc`, password JSON files, recovery-code files and SQLite
+  sidecars are now ignored and covered by the smoke-test privacy defaults.
+
 ## [1.9.0] — 2026-07-04
 
 ### Added

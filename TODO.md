@@ -1,5 +1,11 @@
 # TODO — ticket-master
 
+## Security Audit 2026-07-16
+
+- [x] `.gitignore` schützt jetzt zusätzliche lokale Credential-/Recovery- und
+      SQLite-Artefakte (`.pypirc`, Passwort-JSON, Recovery-Code-Dateien,
+      `*.sqlite`, `*.sqlite3`); Smoke-Test deckt die Muster ab.
+
 ## Review 2026-07-04 (Modul-Review-Loop, frischer Subagent — Funde gefixt in v1.4.1)
 
 - [x] **(hoch)** `ticket_writer.create()` konnte Tickets still überschreiben

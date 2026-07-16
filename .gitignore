@@ -16,6 +16,7 @@ config/knowledge.json
 # Local secrets and credentials
 .env
 .env.*
+.pypirc
 *.pem
 *.key
 *.p12
@@ -25,9 +26,13 @@ id_ed25519
 credentials*.json
 token*.json
 secrets*.json
+*password*.json
 *.recovery-codes.txt
+*recovery*codes*.txt
 .npmrc
 *.db
+*.sqlite
+*.sqlite3
 
 # Runtime ticket files can contain private project details.
 tickets/*.txt
