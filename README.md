@@ -375,6 +375,17 @@ forbidden absolute paths or system-specific terms.
 
 ---
 
+## Part of the ellmos stack family
+
+ticket-master is deliberately both: a standalone dev tool and a core module of
+the ellmos stack family.
+
+Core module of [ellmos-ai/agent-ops-stack](https://github.com/ellmos-ai/agent-ops-stack)
+(role `ticket-routing`); family/catalog: [ellmos-ai/stacks](https://github.com/ellmos-ai/stacks);
+org overview: [ellmos-ai](https://github.com/ellmos-ai).
+
+---
+
 ## License
 
 MIT License — Copyright (c) 2026 Lukas Geiger. See [LICENSE](LICENSE).
