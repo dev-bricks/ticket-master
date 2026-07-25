@@ -4,6 +4,13 @@ All notable changes to ticket-master are documented here.
 
 ## [Unreleased]
 
+### Documentation & Maintenance
+
+- Updated `llms.txt` Last-checked timestamp to 2026-07-25.
+- Added standard `pyproject.toml` with PEP 621 metadata and Pytest configuration (`[tool.pytest.ini_options]`).
+- Added GitHub Actions test CI workflow (`.github/workflows/tests.yml`).
+- Added `> [!NOTE]` callouts referencing `llms.txt` in `README.md` and `README_de.md`.
+
 ### Security
 
 - Hardened local repository hygiene for additional credential and runtime data

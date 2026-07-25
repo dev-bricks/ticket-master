@@ -21,6 +21,9 @@ multi-provider (Claude Code, Codex, agy/Gemini).
 
 🇬🇧 [English documentation → README.md](README.md)
 
+> [!NOTE]
+> KI-Agenten und RAG-Indexer finden maschinenlesbare Kontextinformationen, Suchbegriffe und Einstiegspunkte in [llms.txt](llms.txt).
+
 ---
 
 ## Wie es funktioniert

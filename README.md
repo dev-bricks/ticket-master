@@ -20,6 +20,9 @@ multi-provider (Claude Code, Codex, agy/Gemini).
 
 🇩🇪 [Deutsche Dokumentation → README_de.md](README_de.md)
 
+> [!NOTE]
+> AI agents and RAG indexers can find machine-readable context, search phrases, entry points, and discovery metadata in [llms.txt](llms.txt).
+
 ---
 
 ## How It Works
