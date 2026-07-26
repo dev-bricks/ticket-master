@@ -6,10 +6,12 @@ All notable changes to ticket-master are documented here.
 
 ### Documentation & Maintenance
 
-- Updated `llms.txt` Last-checked timestamp to 2026-07-25.
+- Updated `llms.txt` Last-checked timestamp to 2026-07-26.
 - Added standard `pyproject.toml` with PEP 621 metadata and Pytest configuration (`[tool.pytest.ini_options]`).
 - Added GitHub Actions test CI workflow (`.github/workflows/tests.yml`).
 - Added `> [!NOTE]` callouts referencing `llms.txt` in `README.md` and `README_de.md`.
+- Enhanced Shields.io badges in `README.md` & `README_de.md` (Pytest status 55 passed, Python 3.10+, LLM-Ready, Multi-Provider).
+- Completed Discoverability & Marketing Audit (Pfad B).
 
 ### Security
 

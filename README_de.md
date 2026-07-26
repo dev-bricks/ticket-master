@@ -16,6 +16,10 @@ multi-provider (Claude Code, Codex, agy/Gemini).
 
 [![Lizenz: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Version](https://img.shields.io/badge/version-1.9.0-blue.svg)](VERSION)
+[![Tests](https://img.shields.io/badge/pytest-55%20passed-brightgreen.svg)](tests/)
+[![Python](https://img.shields.io/badge/python-3.10%2B-blue.svg)](pyproject.toml)
+[![LLM-Bereit](https://img.shields.io/badge/LLM--Bereit-llms.txt-blueviolet)](llms.txt)
+[![Provider](https://img.shields.io/badge/provider-Claude%20%7C%20Codex%20%7C%20Gemini-orange)](#starter-matrix)
 
 ---
 
