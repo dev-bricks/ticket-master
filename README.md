@@ -1,4 +1,4 @@
-<img src="assets/banner.svg" alt="ticket-master" width="100%">
+<img src="assets/banner.png" alt="ticket-master" width="100%">
 
 # ticket-master
 
