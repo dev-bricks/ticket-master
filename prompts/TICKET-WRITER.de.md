@@ -248,3 +248,24 @@ Alle Pfade und Befehle kommen aus `config/ticket-writer.config.json`
 | `usmc` | `enabled_probe`, `note_command`, `working_command` |
 | `run_reports_dir` | Ablage der Sessionberichte (Datei-Fallback) |
 | `max_tickets_per_run` | Deckel für Tickets pro Lauf |
+
+
+---
+
+## Verlegungs-Vorbehalt [K 2026-07-31, User-Vorgabe]
+
+SIG-TU (TICKET-WRITER) greift querschnittlich auf fremde Policy-,
+Entscheidungs- und Gedächtnis-Speicher zu (policy_stores, decision_stores,
+memory_stores). Diese Querschnitt-Rolle kann der Kapselung des
+ticket-master-Moduls widersprechen: Eine Integritäts-Wache, die in ALLE
+Stores lesen muss, ist architektonisch möglicherweise kein Ticket-Modul,
+sondern eine eigene Domäne.
+
+Beschluss-Lage: Zum Einführungszeitpunkt ist kein besserer Ort bekannt;
+die Rolle bleibt vorerst hier, ABER ohne harte Kopplung an ticket-master-
+Interna (alle Zugriffe laufen über `config/ticket-writer.config.json`,
+keine Imports aus ticket-master-Code). Kandidaten für eine spätere
+Verlegung (zu evaluieren, wenn die ControlRoom-Komposition steht):
+controlroom-Stack als Operator-Domäne, policy-registry/lock-master als
+Policy-Domäne, oder ein eigenständiges Integrity-Modul. Bei Verlegung:
+Spec + Config unverändert mitnehmen, nur Speicherorte neu binden.

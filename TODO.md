@@ -168,3 +168,15 @@
       ticket-master instance.
 - [ ] Automatic companion rotation based on context-token watermarks.
 - [ ] Web UI for ticket overview and manual routing overrides.
+
+## Offen — Architektur-Vorbehalt SIG-TU (2026-07-31)
+
+- [ ] **Verlegung prüfen (Trigger: ControlRoom-Komposition steht):**
+      SIG-TU/TICKET-WRITER greift querschnittlich auf fremde Policy-,
+      Entscheidungs- und Gedächtnis-Speicher zu und kann der Kapselung
+      von ticket-master widersprechen. Zum Einführungszeitpunkt kein
+      besserer Ort bekannt; Rolle bleibt vorerst hier, entkoppelt über
+      `config/ticket-writer.config.json`. Kandidaten später: controlroom-
+      Stack, policy-registry/lock-master oder eigenes Integrity-Modul.
+      Vermerk in `prompts/TICKET-WRITER.de.md` + `.en.md` (Relocation
+      note [K 2026-07-31]). [K 2026-07-31]

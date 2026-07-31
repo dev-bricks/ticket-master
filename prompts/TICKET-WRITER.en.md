@@ -243,3 +243,23 @@ All paths and commands come from `config/ticket-writer.config.json`
 | `usmc` | `enabled_probe`, `note_command`, `working_command` |
 | `run_reports_dir` | Storage for session reports (file fallback) |
 | `max_tickets_per_run` | Cap on tickets per run |
+
+
+---
+
+## Relocation note [K 2026-07-31, per user]
+
+SIG-TU (TICKET-WRITER) reads across foreign policy, decision and memory
+stores (policy_stores, decision_stores, memory_stores). That cross-cutting
+duty may violate the encapsulation of the ticket-master module: an
+integrity guard that must read EVERY store arguably belongs to its own
+domain rather than to a ticket module.
+
+Status: no better home is known at introduction time, so the role stays
+here for now — but WITHOUT hard coupling to ticket-master internals (all
+access goes through `config/ticket-writer.config.json`; no imports from
+ticket-master code). Candidates for a later relocation (to be evaluated
+once the ControlRoom composition lands): the controlroom stack as operator
+domain, policy-registry/lock-master as policy domain, or a standalone
+integrity module. On relocation: carry spec + config unchanged; only
+rebind the store locations.
