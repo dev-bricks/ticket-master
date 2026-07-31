@@ -91,6 +91,19 @@ Key design principles (how the agent is instructed to behave):
 
 ---
 
+## Roles
+
+<p align="center">
+  <img src="assets/comics/ticket-master.svg" alt="TICKET-MASTER" width="45%"/>
+  &nbsp;&nbsp;
+  <img src="assets/comics/ticket-writer.svg" alt="TICKET-WRITER (SIG-TU)" width="45%"/>
+</p>
+
+- **TICKET-MASTER**: Lean traffic router &amp; dispatcher. Calmly distributes incoming tickets to worker sub-agents or project task boards.
+- **TICKET-WRITER ("SIG-TU")**: System Integrity Guardian. Sentinel with magnifying glass &amp; clipboard; audits proof documents to ensure ABC-level quality.
+
+---
+
 ## Quick Start
 
 ```bash

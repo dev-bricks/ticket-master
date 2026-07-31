@@ -94,6 +94,19 @@ graph TD
 
 ---
 
+## Rollen
+
+<p align="center">
+  <img src="assets/comics/ticket-master.svg" alt="TICKET-MASTER" width="45%"/>
+  &nbsp;&nbsp;
+  <img src="assets/comics/ticket-writer.svg" alt="TICKET-WRITER (SIG-TU)" width="45%"/>
+</p>
+
+- **TICKET-MASTER**: Dünner Router und Verkehrsleiter. Verteilt eingehende Tickets ruhig an spezialisierte Subagenten oder Projektaufgaben-Boards.
+- **TICKET-WRITER („SIG-TU")**: System Integrity Guardian. Schildwache mit Lupe und Klemmbrett; prüft Belege strikt auf ABC-Qualitätsniveau.
+
+---
+
 ## Schnellstart
 
 ```bash

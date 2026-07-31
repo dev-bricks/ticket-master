@@ -1,0 +1,117 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 800" width="800" height="800">
+  <defs>
+    <linearGradient id="tm_bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0f111a"/>
+      <stop offset="100%" stop-color="#1e1b4b"/>
+    </linearGradient>
+    <linearGradient id="tm_c1" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#6366f1"/>
+      <stop offset="100%" stop-color="#4f46e5"/>
+    </linearGradient>
+    <linearGradient id="tm_c2" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#f59e0b"/>
+      <stop offset="100%" stop-color="#d97706"/>
+    </linearGradient>
+    <linearGradient id="tm_c3" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#10b981"/>
+      <stop offset="100%" stop-color="#059669"/>
+    </linearGradient>
+    <linearGradient id="tm_body" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#818cf8"/>
+      <stop offset="100%" stop-color="#3730a3"/>
+    </linearGradient>
+    <filter id="tm_glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="6" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+  </defs>
+
+  <rect width="800" height="800" rx="36" fill="url(#tm_bg)"/>
+  <rect x="24" y="24" width="752" height="752" rx="28" fill="none" stroke="#6366f1" stroke-width="2" stroke-opacity="0.3"/>
+
+  <!-- Rail/Switching lines -->
+  <path d="M 100 620 L 350 470 L 350 330" fill="none" stroke="#475569" stroke-width="8" stroke-dasharray="12,12" stroke-linecap="round"/>
+  <path d="M 700 620 L 450 470 L 450 330" fill="none" stroke="#475569" stroke-width="8" stroke-dasharray="12,12" stroke-linecap="round"/>
+  <path d="M 400 470 L 400 660" fill="none" stroke="#6366f1" stroke-width="10" stroke-linecap="round" stroke-opacity="0.6"/>
+
+  <!-- Signal Lantern Left -->
+  <g transform="translate(120, 500)">
+    <rect x="-20" y="-50" width="40" height="100" rx="10" fill="#1e293b" stroke="#6366f1" stroke-width="4"/>
+    <circle cx="0" cy="-24" r="14" fill="#10b981" filter="url(#tm_glow)"/>
+    <circle cx="0" cy="24" r="14" fill="#f59e0b" filter="url(#tm_glow)"/>
+    <line x1="0" y1="50" x2="0" y2="120" stroke="#475569" stroke-width="6"/>
+  </g>
+
+  <!-- Signal Lantern Right -->
+  <g transform="translate(680, 500)">
+    <rect x="-20" y="-50" width="40" height="100" rx="10" fill="#1e293b" stroke="#6366f1" stroke-width="4"/>
+    <circle cx="0" cy="-24" r="14" fill="#10b981" filter="url(#tm_glow)"/>
+    <circle cx="0" cy="24" r="14" fill="#ef4444"/>
+    <line x1="0" y1="50" x2="0" y2="120" stroke="#475569" stroke-width="6"/>
+  </g>
+
+  <!-- Legs -->
+  <line x1="370" y1="520" x2="370" y2="660" stroke="#1e1b4b" stroke-width="18" stroke-linecap="round"/>
+  <line x1="370" y1="520" x2="370" y2="660" stroke="#818cf8" stroke-width="10" stroke-linecap="round"/>
+  <line x1="430" y1="520" x2="430" y2="660" stroke="#1e1b4b" stroke-width="18" stroke-linecap="round"/>
+  <line x1="430" y1="520" x2="430" y2="660" stroke="#818cf8" stroke-width="10" stroke-linecap="round"/>
+  <ellipse cx="365" cy="665" rx="22" ry="12" fill="#312e81"/>
+  <ellipse cx="435" cy="665" rx="22" ry="12" fill="#312e81"/>
+
+  <!-- Body -->
+  <path d="M 350 280 L 450 280 L 460 520 L 340 520 Z" fill="url(#tm_body)" stroke="#0f172a" stroke-width="5"/>
+  <rect x="360" y="380" width="80" height="60" rx="8" fill="#0f172a" stroke="#f59e0b" stroke-width="3"/>
+  <circle cx="380" cy="400" r="6" fill="#10b981"/>
+  <circle cx="400" cy="400" r="6" fill="#f59e0b"/>
+  <circle cx="420" cy="400" r="6" fill="#6366f1"/>
+  <rect x="375" y="420" width="50" height="8" rx="4" fill="#38bdf8"/>
+
+  <!-- Arms -->
+  <path d="M 350 300 Q 250 260 180 220" fill="none" stroke="#818cf8" stroke-width="14" stroke-linecap="round"/>
+  <path d="M 450 300 Q 550 260 620 220" fill="none" stroke="#818cf8" stroke-width="14" stroke-linecap="round"/>
+  <circle cx="180" cy="220" r="16" fill="#ffffff" stroke="#1e1b4b" stroke-width="4"/>
+  <circle cx="620" cy="220" r="16" fill="#ffffff" stroke="#1e1b4b" stroke-width="4"/>
+
+  <!-- Head -->
+  <rect x="385" y="245" width="30" height="40" fill="#c7d2fe"/>
+  <rect x="345" y="140" width="110" height="110" rx="30" fill="#e0e7ff" stroke="#1e1b4b" stroke-width="5"/>
+  <ellipse cx="378" cy="185" rx="12" ry="16" fill="#0f172a"/>
+  <ellipse cx="422" cy="185" rx="12" ry="16" fill="#0f172a"/>
+  <circle cx="381" cy="180" r="4" fill="#ffffff"/>
+  <circle cx="425" cy="180" r="4" fill="#ffffff"/>
+  <path d="M 385 215 Q 400 228 415 215" fill="none" stroke="#1e1b4b" stroke-width="4" stroke-linecap="round"/>
+
+  <!-- Conductor Hat -->
+  <path d="M 335 150 L 465 150 L 450 115 L 350 115 Z" fill="#312e81" stroke="#0f172a" stroke-width="4"/>
+  <rect x="330" y="145" width="140" height="12" rx="6" fill="#f59e0b"/>
+  <line x1="400" y1="115" x2="400" y2="75" stroke="#f59e0b" stroke-width="5"/>
+  <circle cx="400" cy="70" r="12" fill="#6366f1" filter="url(#tm_glow)"/>
+
+  <!-- Floating Ticket Cards -->
+  <g transform="translate(130, 120) rotate(-15)">
+    <rect x="0" y="0" width="110" height="70" rx="10" fill="url(#tm_c1)" stroke="#ffffff" stroke-width="3"/>
+    <text x="15" y="30" fill="#ffffff" font-family="system-ui, sans-serif" font-size="14" font-weight="bold">TICKET #101</text>
+    <rect x="15" y="42" width="60" height="6" rx="3" fill="#a5b4fc"/>
+    <rect x="15" y="52" width="40" height="6" rx="3" fill="#a5b4fc"/>
+    <circle cx="90" cy="50" r="8" fill="#10b981"/>
+  </g>
+
+  <g transform="translate(560, 110) rotate(12)">
+    <rect x="0" y="0" width="110" height="70" rx="10" fill="url(#tm_c2)" stroke="#ffffff" stroke-width="3"/>
+    <text x="15" y="30" fill="#ffffff" font-family="system-ui, sans-serif" font-size="14" font-weight="bold">TICKET #102</text>
+    <rect x="15" y="42" width="60" height="6" rx="3" fill="#fde68a"/>
+    <rect x="15" y="52" width="40" height="6" rx="3" fill="#fde68a"/>
+    <circle cx="90" cy="50" r="8" fill="#6366f1"/>
+  </g>
+
+  <g transform="translate(345, 20) rotate(-4)">
+    <rect x="0" y="0" width="110" height="65" rx="10" fill="url(#tm_c3)" stroke="#ffffff" stroke-width="3"/>
+    <text x="15" y="28" fill="#ffffff" font-family="system-ui, sans-serif" font-size="14" font-weight="bold">TICKET #103</text>
+    <rect x="15" y="38" width="55" height="6" rx="3" fill="#6ee7b7"/>
+    <circle cx="90" cy="45" r="8" fill="#f59e0b"/>
+  </g>
+
+  <!-- Title Badge -->
+  <rect x="180" y="705" width="440" height="54" rx="27" fill="#1e1b4b" stroke="#6366f1" stroke-width="3"/>
+  <text x="400" y="740" text-anchor="middle" fill="#ffffff" font-family="system-ui, -apple-system, sans-serif" font-size="22" font-weight="bold" letter-spacing="1">TICKET-MASTER · Smart Router</text>
+</svg>
