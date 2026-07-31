@@ -159,7 +159,8 @@ Fill the remaining template fields (project assignment, model routing etc.)
 according to the target system's conventions, or leave them to its triage.
 
 **DEDUP DUTY:** before creating, check open tickets (`tickets_dir`: root,
-`QUEUED/`, `PENDING/`, `.USER/`). If the same problem is already ticketed and
+`INBOX/`, `ACTIONABLE/`, `QUEUED/`, `BLOCKED/`, `WAITING/`, `USER/`, `PARKED/`;
+legacy: `PENDING/`, `.USER/`). If the same problem is already ticketed and
 open, do **not** create a new ticket — instead add a line to the session
 report ("already open as T-…"). Also search `memory_stores[]` for earlier
 SIG-TU findings of the same area, where available.

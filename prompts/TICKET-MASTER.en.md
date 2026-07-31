@@ -54,7 +54,9 @@ context — exactly what the Lean Router principle exists to prevent.
 
 2. **Requires user-only model / device / external approval / not empirically
    verifiable right now**
-   → Move ticket to `.USER/` or `PENDING/`.
+   → Move ticket to `USER/` (subcategory `session`/`hardware`/`freigabe`) or
+   `BLOCKED/` (external blocker) — categories v1, see
+   `docs/CATEGORIES.en.md`.
 
 3. **Actionable now:**
    a. Matching companion active? → Send task via `SendMessage` to that companion.
@@ -105,7 +107,8 @@ the next unclaimed ticket.
   (`T-….<HOST>.txt` with ID, one LOG line `Date | Route | Result`, result
   hash) — never append to a collective file.
 - Full ticket `.txt` with all sections only for: delegated-with-tracking,
-  PENDING, deferred, multi-step across sessions, audit-relevant.
+  blocked/waiting (BLOCKED/WAITING/USER/PARKED), multi-step across sessions,
+  audit-relevant.
 - **Deprecated:** `tickets/_logs/INTAKE-TRIAGE-LOG.txt` (the pre-1.5.0 shared
   intake log). Kept for legacy setups; do not write new lines to it.
 
@@ -128,11 +131,19 @@ Conventions are below and in the template at `tickets/_templates/TICKET.txt`.
 - One ticket = one `.txt` file in `tickets/`.
 - Use the template. Fill `PIPELINE`, `PROJECT_DIR`, and `CONTROL_FILE` to
   confirm GATE1.
-- Lifecycle:
-  - Ticket solved → move to `tickets/SOLVED/`
+- Lifecycle (categories v1, binding: `docs/CATEGORIES.en.md`):
+  - Newly arrived → `tickets/INBOX/` (root = alias, unclaimed)
+  - Actionable now → `tickets/ACTIONABLE/`
   - Handed to agent → `tickets/QUEUED/`
-  - Moved to project task management → `tickets/PENDING/`
-  - Requires user-only model / device → `tickets/.USER/`
+  - External blocker → `tickets/BLOCKED/` (host-receipt / foreign-state /
+    lock / quota / dependency)
+  - Time-/marker-bound → `tickets/WAITING/` (scheduled / review-due / marker)
+  - Strictly user-dependent → `tickets/USER/` (decision / data / freigabe /
+    hardware / session)
+  - Deliberately set aside → `tickets/PARKED/` (skip / backlog / until-trigger)
+  - Ticket solved → move to `tickets/SOLVED/`
+  - Legacy (pre-v1, read-only, no new entries): `tickets/PENDING/`,
+    `tickets/.USER/`
 
 ### (c) Learn available models and routing options
 
@@ -172,7 +183,7 @@ available in your harness.
 
 - Do not use a model for tasks that its known weaknesses disqualify it for
   (e.g. formal mathematical proofs require the highest-tier advisor).
-- When the ideal model is only user-launchable, mark the ticket for `.USER/`
+- When the ideal model is only user-launchable, mark the ticket for `USER/`
   and prepare it as a ready-to-paste prompt.
 
 *(Optional)* Refresh the model table from web queries, memory, or sync files
@@ -316,8 +327,8 @@ can score low and still be urgent (or the reverse).
      a diagnosis sub-agent immediately**, have it size the issue and report
      back compactly, then finalise the fix.
    - A user-only-model requirement does NOT change urgency — a `sofort`
-     ticket that only the user can launch still moves to `.USER/` right away
-     (flagged urgent), instead of waiting quietly.
+     ticket that only the user can launch still moves to `USER/` (subcategory
+     `session`) right away (flagged urgent), instead of waiting quietly.
 4. **Borderline case** (the default and the escalation rules disagree, or the
    ticket genuinely sits on a boundary): if `urgency.json` has a `command`
    configured under `preference_model_hint` (e.g. a theory-of-mind /
@@ -382,8 +393,8 @@ check the target project/endpoint for `LOCK*.txt` and/or a
 `LOCK.permissions.json` (e.g. provided by a lock-master-style lock/permission
 system, if one is in use). Precedence `deny > ask > allow`; **user locks are
 absolute** — never override them, not even for high urgency. An active
-foreign/exclusive lock → do not spawn, move the ticket to `PENDING/` or wait
-for release instead.
+foreign/exclusive lock → do not spawn, move the ticket to `BLOCKED/`
+(subcategory `lock`) or wait for release instead.
 
 **(1)** Hand the task to the top candidate → proceed to GATE 4.
 
@@ -402,9 +413,11 @@ for release instead.
 1. **Async delegation:** Drop a contact file in the shared sync folder or
    schedule a cron job (if you know when the agent will be available again).
 2. **Project task:** Enter the ticket into the project's own task management
-   (`TODO.md`, `ROADMAP.md`, `BUGS.md`, etc.) → move ticket to `PENDING/`.
+   (`TODO.md`, `ROADMAP.md`, `BUGS.md`, etc.) → move ticket to `BLOCKED/`
+   (subcategory `quota`).
 3. **User handoff:** If the task strictly requires a user-only model AND is
-   important/urgent → move ticket to `.USER/` formatted as a ready-to-paste
+   important/urgent → move ticket to `USER/` (subcategory `session`)
+   formatted as a ready-to-paste
    prompt with routing info.
 
 → POSITION 0.

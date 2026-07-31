@@ -16,7 +16,7 @@ multi-provider (Claude Code, Codex, agy/Gemini).
 
 [![Lizenz: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Version](https://img.shields.io/badge/version-1.9.0-blue.svg)](VERSION)
-[![Tests](https://img.shields.io/badge/pytest-55%20passed-brightgreen.svg)](tests/)
+[![Tests](https://img.shields.io/badge/pytest-56%20passed-brightgreen.svg)](tests/)
 [![Python](https://img.shields.io/badge/python-3.10%2B-blue.svg)](pyproject.toml)
 [![LLM-Bereit](https://img.shields.io/badge/LLM--Bereit-llms.txt-blueviolet)](llms.txt)
 [![Provider](https://img.shields.io/badge/provider-Claude%20%7C%20Codex%20%7C%20Gemini-orange)](#starter-matrix)
@@ -65,8 +65,8 @@ graph TD
     Score --> Router{Routing-Entscheidung}
     
     Router -->|Tier 1-4 & Dringend| GATE4{GATE 4: Delegation}
-    Router -->|Backlog / Geringe Dringlichkeit| TaskDB[Projektspezifisches Task-Board<br>tickets/PENDING/]
-    Router -->|Manuelle Bearbeitung| UserHandoff[Manuelle Übergabe<br>tickets/.USER/]
+    Router -->|Backlog / Geringe Dringlichkeit| TaskDB[Projektspezifisches Task-Board<br>tickets/PARKED/]
+    Router -->|Manuelle Bearbeitung| UserHandoff[Manuelle Übergabe<br>tickets/USER/]
     
     GATE4 -->|Erfolg| Solved[tickets/SOLVED/<br>Commit & Verifikation]
     GATE4 -->|Fehlschlag / Timeout| Fallback[Fallback-Kette<br>Nächstbester Provider]
@@ -237,11 +237,21 @@ tickets/
 │   └── INTAKE-TRIAGE-LOG.txt
 ├── _templates/TICKET.txt       <- Ticket-Vorlage
 ├── *.txt                       <- offene Tickets (je eine .txt-Datei)
+├── INBOX/                      <- neu eingegangen, noch nicht triagiert (Root = Alias)
+├── ACTIONABLE/                 <- sofort umsetzbar: kein Blocker, keine User-Abhängigkeit
 ├── QUEUED/                     <- an Provider übergeben, Ergebnis ausstehend
-├── PENDING/                    <- ins projekteigene Task-Management überführt
-├── .USER/                      <- erfordert manuell gestartetes Modell/User-Aktion
-└── SOLVED/                     <- gelöst und empirisch bestätigt
+├── BLOCKED/                    <- externer Blocker (host-receipt / foreign-state / lock / quota / dependency)
+├── WAITING/                    <- zeit-/marker-gebunden (scheduled / review-due / marker)
+├── USER/                       <- hängt zwingend am User (decision / data / freigabe / hardware / session)
+├── PARKED/                     <- bewusst zurückgestellt (skip / backlog / until-trigger)
+├── SOLVED/                     <- gelöst und empirisch bestätigt
+├── PENDING/                    <- LEGACY-Alias (vor v1) — lesbar, keine neuen Einträge
+└── .USER/                      <- LEGACY-Alias (vor v1) — abgelöst durch USER/
 ```
+
+Das vollständige Kategorien-Modell (Ein-/Ausgangsregeln, Autonomie-Loop,
+STATUS-Spiegelung) steht in [docs/CATEGORIES.de.md](docs/CATEGORIES.de.md)
+([English](docs/CATEGORIES.en.md)).
 
 Der Audit-/Triage-Trail lebt **pro Ticket** in der Ticketdatei selbst
 (Felder `STATUS` / `VERLAUF` / `LOESUNG`). Triviale, sofort erledigte und

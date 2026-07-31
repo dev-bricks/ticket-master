@@ -79,11 +79,16 @@ LOESUNG / ERGEBNIS
 """
 
 
-# Alle Orte, an denen Tickets desselben Tages liegen koennen (Lebenszyklus:
-# Intake im Root, dann QUEUED/PENDING/.USER/SOLVED). Fuer die Nummernvergabe
-# zaehlen sie ALLE — sonst entstehen doppelte IDs, sobald ein Ticket
-# weiterverschoben wurde.
-_LIFECYCLE_SUBDIRS = ("", "QUEUED", "PENDING", "SOLVED", ".USER")
+# Alle Orte, an denen Tickets desselben Tages liegen koennen (Kategorien v1,
+# docs/CATEGORIES.*.md: Intake im Root/INBOX, dann ACTIONABLE/QUEUED/BLOCKED/
+# WAITING/USER/PARKED/SOLVED). Fuer die Nummernvergabe zaehlen sie ALLE —
+# sonst entstehen doppelte IDs, sobald ein Ticket weiterverschoben wurde.
+# Rueckwaertskompatibilitaet: PENDING und .USER bleiben als Legacy-Aliase
+# (Flachmodell vor v1) in der Liste, damit Alt-Bestaende weiter mitzaehlen;
+# PENDING-Eingaenge werden bei der Instanz-Migration auf ACTIONABLE/USER/
+# BLOCKED/WAITING/PARKED verteilt, .USER wird durch USER abgeloest.
+_LIFECYCLE_SUBDIRS = ("", "INBOX", "ACTIONABLE", "QUEUED", "BLOCKED", "WAITING",
+                      "USER", "PARKED", "SOLVED", "PENDING", ".USER")
 
 
 def _next_number(base: Path, datestr: str) -> int:

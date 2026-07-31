@@ -4,7 +4,12 @@ TICKET
 ID:            T-YYYYMMDD-NN          (date + sequential number)
 TITLE:         <short problem title>
 CREATED:       YYYY-MM-DD
-STATUS:        OPEN | QUEUED | PENDING | .USER | SOLVED
+STATUS:        <CLUSTER>[/<subcategory>] (since YYYY-MM-DD) — categories v1:
+               INBOX | ACTIONABLE | QUEUED | BLOCKED/host-receipt|foreign-state|
+               lock|quota|dependency | WAITING/scheduled|review-due|marker |
+               USER/decision|data|freigabe|hardware|session |
+               PARKED/skip|backlog|until-trigger | SOLVED
+               (legacy aliases: OPEN | PENDING | .USER — see docs/CATEGORIES.en.md)
 PRIORITY:      low | medium | high | critical
 
 --------------------------------------------------------------

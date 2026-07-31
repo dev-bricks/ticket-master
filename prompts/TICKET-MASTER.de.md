@@ -57,7 +57,9 @@ soll.
 
 2. **Erfordert ein nur vom User startbares Modell / Gerät / externe Freigabe /
    ist gerade nicht empirisch verifizierbar**
-   → Ticket nach `.USER/` oder `PENDING/` verschieben.
+   → Ticket nach `USER/` (Unterkategorie `session`/`hardware`/`freigabe`) bzw.
+   `BLOCKED/` (externer Blocker) verschieben — Kategorien v1, siehe
+   `docs/CATEGORIES.de.md`.
 
 3. **Jetzt umsetzbar:**
    a. Passender Companion aktiv? → Aufgabe per `SendMessage` an diesen Companion.
@@ -111,7 +113,8 @@ zurückrollen und das nächste unclaimed Ticket nehmen.
   (`T-….<HOST>.txt` mit ID, einer VERLAUF-Zeile `Datum | Route | Ergebnis`,
   Ergebnis-Hash) — nie an eine Sammeldatei anhängen.
 - Volle Ticket-`.txt` mit allen Abschnitten nur für: delegiert-mit-Tracking,
-  PENDING, zurückgestellt, mehrstufig über Sessions hinweg, audit-relevant.
+  blockiert/wartend (BLOCKED/WAITING/USER/PARKED), mehrstufig über Sessions
+  hinweg, audit-relevant.
 - **Deprecated:** `tickets/_logs/INTAKE-TRIAGE-LOG.txt` (das geteilte
   Intake-Log vor 1.5.0). Bleibt für Alt-Setups liegen; keine neuen Zeilen
   mehr hineinschreiben.
@@ -136,11 +139,19 @@ Die Konventionen stehen unten und im Template `tickets/_templates/TICKET.txt`.
 - Ein Ticket = eine `.txt`-Datei in `tickets/`.
 - Nutze das Template. Fülle `PIPELINE`, `PROJECT_DIR` und `CONTROL_FILE` aus, um
   GATE1 zu bestätigen.
-- Lebenszyklus:
-  - Ticket gelöst → nach `tickets/SOLVED/` verschieben
+- Lebenszyklus (Kategorien v1, verbindlich: `docs/CATEGORIES.de.md`):
+  - Neu eingegangen → `tickets/INBOX/` (Root = Alias, unclaimed)
+  - Sofort umsetzbar → `tickets/ACTIONABLE/`
   - An Agent übergeben → `tickets/QUEUED/`
-  - Ins Projekt-Task-Management überführt → `tickets/PENDING/`
-  - Erfordert nur-User-startbares Modell / Gerät → `tickets/.USER/`
+  - Externer Blocker → `tickets/BLOCKED/` (host-receipt / foreign-state /
+    lock / quota / dependency)
+  - Zeit-/Marker-gebunden → `tickets/WAITING/` (scheduled / review-due / marker)
+  - Hängt zwingend am User → `tickets/USER/` (decision / data / freigabe /
+    hardware / session)
+  - Bewusst zurückgestellt → `tickets/PARKED/` (skip / backlog / until-trigger)
+  - Ticket gelöst → nach `tickets/SOLVED/` verschieben
+  - Legacy (vor v1, nur lesen, keine neuen Einträge): `tickets/PENDING/`,
+    `tickets/.USER/`
 
 ### (c) Verfügbare Modelle und Routing-Optionen lernen
 
@@ -183,7 +194,7 @@ falls er in deinem Harness verfügbar ist.
   disqualifizieren (z.B. formale mathematische Beweise erfordern den
   höchsten Advisor-Tier).
 - Wenn das ideale Modell nur vom User startbar ist, markiere das Ticket für
-  `.USER/` und bereite es als einfügefertigen Prompt vor.
+  `USER/` und bereite es als einfügefertigen Prompt vor.
 
 *(Optional)* Aktualisiere die Modell-Tabelle aus Web-Abfragen, Memory oder
 Sync-Dateien, wenn sich Informationen geändert haben könnten.
@@ -332,7 +343,7 @@ niedrigen Score haben und trotzdem sofort dran sein (oder umgekehrt).
      erst final einstufen/lösen.
    - Ein User-only-Modell-Erfordernis ändert die Dringlichkeit NICHT — ein
      sofort-Ticket, das nur der User starten kann, geht trotzdem sofort
-     (markiert) nach `.USER/` statt still zu warten.
+     (markiert) nach `USER/` (Unterkategorie `session`) statt still zu warten.
 4. **Grenzfall** (Default und Eskalationsregeln widersprechen sich, oder das
    Ticket liegt erkennbar auf der Kippe): falls `urgency.json` unter
    `preference_model_hint` ein `command` konfiguriert hat (z.B. ein
@@ -400,7 +411,8 @@ Zielprojekt/-endpunkt prüfen, ob dort `LOCK*.txt` und/oder eine
 artigen Rechte-/Sperrsystem, sofern eines betrieben wird). Präzedenz
 `deny > ask > allow`; **User-Locks sind absolut** — niemals umgehen, auch
 nicht bei hoher Dringlichkeit. Aktiver fremder/exklusiver Lock → Ticket nicht
-spawnen, sondern nach `PENDING/` verschieben oder auf Freigabe warten.
+spawnen, sondern nach `BLOCKED/` (Unterkategorie `lock`) verschieben oder auf
+Freigabe warten.
 
 **(1)** Übergib die Aufgabe an den Top-Kandidaten → weiter zu GATE 4.
 
@@ -420,10 +432,12 @@ wählen:
 1. **Async-Delegation:** Eine Kontaktdatei im geteilten Sync-Ordner ablegen oder
    einen Cron-Job einplanen (wenn du weißt, wann der Agent wieder verfügbar ist).
 2. **Projekt-Task:** Das Ticket ins projekteigene Task-Management eintragen
-   (`TODO.md`, `ROADMAP.md`, `BUGS.md`, etc.) → Ticket nach `PENDING/` verschieben.
+   (`TODO.md`, `ROADMAP.md`, `BUGS.md`, etc.) → Ticket nach `BLOCKED/`
+   (Unterkategorie `quota`) verschieben.
 3. **User-Übergabe:** Wenn die Aufgabe zwingend ein nur-User-startbares Modell
-   erfordert UND wichtig/dringend ist → Ticket nach `.USER/` verschieben,
-   formatiert als einfügefertiger Prompt mit Routing-Info.
+   erfordert UND wichtig/dringend ist → Ticket nach `USER/` (Unterkategorie
+   `session`) verschieben, formatiert als einfügefertiger Prompt mit
+   Routing-Info.
 
 → POSITION 0.
 

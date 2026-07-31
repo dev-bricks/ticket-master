@@ -17,6 +17,25 @@ All notable changes to ticket-master are documented here.
   ticket when nothing is found — session report only). Ships as
   `prompts/TICKET-WRITER.de.md` + `prompts/TICKET-WRITER.en.md` with
   `config/ticket-writer.config.example.json`.
+- **Category system v1 (T-20260731-22).** The flat lifecycle
+  `ROOT | QUEUED | PENDING | .USER | SOLVED` is superseded by eight clusters
+  with subcategories, explicit entry/exit rules and an autonomy loop —
+  specified in the new `docs/CATEGORIES.de.md` / `docs/CATEGORIES.en.md`.
+  New cluster folders ship in `tickets/` (INBOX, ACTIONABLE, BLOCKED,
+  WAITING, USER, PARKED); `PENDING/` and `.USER/` stay readable as legacy
+  aliases (no new entries).
+
+### Changed
+
+- **Prompts, template, lib and tests moved to categories v1
+  (T-20260731-22).** `prompts/TICKET-MASTER.de.md` / `.en.md` route to
+  `USER/` / `BLOCKED/` / `PARKED/` instead of `.USER/` / `PENDING/`; the
+  TICKET-WRITER dedup scan covers the new cluster folders;
+  `tickets/_templates/TICKET.txt` documents the `CLUSTER[/subcategory]`
+  STATUS format; `lib/ticket_writer.py` `_LIFECYCLE_SUBDIRS` counts all v1
+  clusters plus the legacy aliases (backwards-compatible; QUEUED/SOLVED
+  unchanged); smoke/lib tests cover the new layout. `README.md` /
+  `README_de.md` describe the new directory layout and link the spec.
 
 ### Documentation & Maintenance
 

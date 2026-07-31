@@ -40,6 +40,24 @@ class TestTicketWriter(unittest.TestCase):
                                         today="2026-06-27")
             self.assertEqual(Path(path).name, "T-20260627-03.txt")
 
+    def test_id_unique_across_v1_category_dirs(self):
+        """Kategorien v1: Nummernvergabe zaehlt auch die neuen Cluster-Ordner
+        (INBOX/ACTIONABLE/BLOCKED/WAITING/USER/PARKED) und die Legacy-Aliase
+        PENDING/.USER weiter mit (docs/CATEGORIES.*.md)."""
+        with tempfile.TemporaryDirectory() as tmp:
+            base = Path(tmp)
+            for sub, name in (("ACTIONABLE", "T-20260627-01.txt"),
+                              ("BLOCKED", "T-20260627-02.HOSTX.txt"),
+                              ("USER", "T-20260627-03.txt"),
+                              ("PARKED", "T-20260627-04.txt"),
+                              ("PENDING", "T-20260627-05.txt")):
+                d = base / sub
+                d.mkdir()
+                (d / name).write_text("alt", encoding="utf-8")
+            path = ticket_writer.create("Neu", "Body", tickets_dir=base,
+                                        today="2026-06-27")
+            self.assertEqual(Path(path).name, "T-20260627-06.txt")
+
     def test_create_never_overwrites_existing(self):
         """Kollidiert die berechnete Nummer (Race/Cloud-Sync), wird hochgezaehlt
         statt ueberschrieben (exklusives Anlegen)."""

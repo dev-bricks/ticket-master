@@ -163,7 +163,8 @@ nach den Konventionen des Zielsystems aus bzw. überlässt sie der dortigen
 Triage.
 
 **DEDUP-PFLICHT:** Vor jedem Anlegen offene Tickets prüfen (`tickets_dir`:
-Root, `QUEUED/`, `PENDING/`, `.USER/`). Ist dasselbe Problem bereits offen
+Root, `INBOX/`, `ACTIONABLE/`, `QUEUED/`, `BLOCKED/`, `WAITING/`, `USER/`,
+`PARKED/`; Legacy: `PENDING/`, `.USER/`). Ist dasselbe Problem bereits offen
 ticketed, **kein** neues Ticket — stattdessen eine Zeile im Sessionbericht
 („bereits offen als T-…"). Auch `memory_stores[]` nach früheren SIG-TU-Funden
 desselben Bereichs durchsuchen, soweit verfügbar.
