@@ -4,6 +4,20 @@ All notable changes to ticket-master are documented here.
 
 ## [Unreleased]
 
+### Added
+
+- **New role TICKET-WRITER (SIG-TU — System Integrity Guardian with Ticket and
+  USMC adapter), T-20260731-20.** Loop-based, read-only integrity sweeps: one
+  externally assigned area per run (loop contract with explicit assignment,
+  optional external selector, or rotation over `areas[]`), mandatory ABC
+  evidence schema per finding (A problem/location, B violated rule, C
+  recommendation basis), explicit counterargument + drift verdict
+  (unwanted/wanted/no drift), thematic bundling within a run only, dedup duty,
+  USMC run logging with local file fallback, and a null-finding protocol (no
+  ticket when nothing is found — session report only). Ships as
+  `prompts/TICKET-WRITER.de.md` + `prompts/TICKET-WRITER.en.md` with
+  `config/ticket-writer.config.example.json`.
+
 ### Documentation & Maintenance
 
 - Updated `llms.txt` Last-checked timestamp to 2026-07-27 and verified Pytest test suite contract (55 passed tests).

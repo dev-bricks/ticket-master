@@ -1,0 +1,72 @@
+{
+  "_comment": "Copy this file to ticket-writer.config.json and fill in your own values. Placeholders: <USER> = OS user name, <HOME> = user home directory. The TICKET-WRITER role (prompts/TICKET-WRITER.<lang>.md) reads all paths/commands from here.",
+  "tickets_dir": "./tickets",
+  "ticket_template": "./tickets/_templates/TICKET.txt",
+  "_comment_areas": "Rotation list for the loop contract: exactly ONE area per run. 'name' is used in reports and ticket ORIGIN lines, 'path' scopes the read-only sweep, 'focus' states what integrity aspects to check.",
+  "areas": [
+    {
+      "name": "my-pipeline-docs",
+      "path": "/path/to/docs-pipeline",
+      "focus": "manifest vs. reality, orphaned files, ownership of directories"
+    },
+    {
+      "name": "my-pipeline-software",
+      "path": "/path/to/software-projects",
+      "focus": "lock/permissions compliance, stale locks, governance violations"
+    }
+  ],
+  "_comment_area_selector_command": "Optional external selector (loop contract source 2): a CLI call that prints the next area name, e.g. a taskplan-style selector ('python -m taskplan next --role ticket-writer'). If null, rotation over areas[] applies.",
+  "area_selector_command": null,
+  "_comment_policy_stores": "Binding rules the area is audited against (evidence B). kind: file | command | mcp_tool.",
+  "policy_stores": [
+    {
+      "name": "system-manifest",
+      "kind": "file",
+      "target": "<HOME>/SYSTEM-MANIFEST.md"
+    },
+    {
+      "name": "control-center-manifest",
+      "kind": "file",
+      "target": "<HOME>/OneDrive/.TOPICS/_control-center/MANIFEST.md"
+    },
+    {
+      "name": "lock-permissions",
+      "kind": "file",
+      "target": "<area>/LOCK.permissions.json"
+    }
+  ],
+  "_comment_decision_stores": "Prior decisions (evidence C, drift analysis).",
+  "decision_stores": [
+    {
+      "name": "decisions-chain",
+      "kind": "file",
+      "target": "<HOME>/OneDrive/.TOPICS/_control-center/_DECISIONS/TO-DECIDE-USER.txt"
+    },
+    {
+      "name": "project-decisions",
+      "kind": "file",
+      "target": "<area>/DECISIONS.md"
+    }
+  ],
+  "_comment_memory_stores": "Memory/context stores (previous runs, dedup support).",
+  "memory_stores": [
+    {
+      "name": "usmc",
+      "kind": "command",
+      "target": "usmc facts --json"
+    },
+    {
+      "name": "gardener",
+      "kind": "command",
+      "target": "python <HOME>/repos/gardener/gardener.py find"
+    }
+  ],
+  "_comment_usmc": "USMC adapter for run logging. enabled_probe is executed first; on failure the file fallback (run_reports_dir) applies -- normal operation, not an error.",
+  "usmc": {
+    "enabled_probe": "usmc --version",
+    "note_command": "usmc note",
+    "working_command": "usmc working"
+  },
+  "run_reports_dir": "./tickets/_logs/SIG-TU",
+  "max_tickets_per_run": 3
+}
