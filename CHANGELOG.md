@@ -39,6 +39,9 @@ All notable changes to ticket-master are documented here.
 
 ### Documentation & Maintenance
 
+- Synchronized `README_de.md` with the canonical English README: restored all
+  sections and configuration fields, aligned heading levels and links, and made
+  all code and Mermaid blocks byte-identical across both language versions.
 - Updated `llms.txt` Last-checked timestamp to 2026-07-27 and verified Pytest test suite contract (55 passed tests).
 - Updated `llms.txt` Last-checked timestamp to 2026-07-26.
 - Added standard `pyproject.toml` with PEP 621 metadata and Pytest configuration (`[tool.pytest.ini_options]`).
