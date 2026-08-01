@@ -180,3 +180,55 @@
       Stack, policy-registry/lock-master oder eigenes Integrity-Modul.
       Vermerk in `prompts/TICKET-WRITER.de.md` + `.en.md` (Relocation
       note [K 2026-07-31]). [K 2026-07-31]
+
+## Offen — SIG-TU-Rollentest 2026-08-01 (5 Reibungspunkte)
+
+> Quelle: TICKET-WRITER/SIG-TU-Rollentest 2026-08-01 (Auftrag OP-TW-TEST),
+> Bereich `control-center-manifest-vs-reality`. Reibungspunkte am
+> Rollen-Prompt/Config selbst, nicht am geprüften Zielsystem — siehe
+> Sessionbericht (USMC-Note ID 102) und `_control-center/_TICKETS/
+> T-20260801-18.ASUS-GEI.txt` (das einzige produzierte Ticket des Laufs).
+
+- [x] **Fail-Safe "kein Bereich zuteilbar" zu hart für Ersteinrichtung/
+      Testbetrieb — behoben durch TASKSOLVER-Rollentest 2026-08-01
+      (task-master Task-ID 2, taskplan.db).** `prompts/TICKET-WRITER.de.md`
+      + `.en.md` (Abschnitt FAIL-SAFES) sahen bei fehlender Config nur
+      "USER FRAGEN; kein Selbstwahl-Sweep" vor, ohne Ausnahme für den in
+      einem frischen Deployment sehr wahrscheinlichen Fall "nur
+      `*.example.json` vorhanden". Beide Sprachfassungen um eine explizite
+      Ausnahme ergänzt (Selbstwahl NUR als gekennzeichneter Trockenlauf,
+      mit Begründung im Sessionbericht; produktiver Einsatz ohne echte
+      Config bleibt bei USER FRAGEN). Verifiziert: `python
+      tests/test_smoke.py` weiterhin 4/4 grün.
+- [x] **`<HOME>/SYSTEM-MANIFEST.md` in `ticket-writer.config.example.json`
+      falsch — direkt gefixt (dieser Commit/Edit).** Die kanonische Datei
+      liegt unter `<HOME>/OneDrive/SYSTEM-MANIFEST.md` (bestätigt durch
+      `~/CLAUDE.md`/`~/OneDrive/CLAUDE.md`: "Kanonischer Ort:
+      `~/OneDrive/SYSTEM-MANIFEST.md`"). Genau die Art Pfad-Drift, die
+      SIG-TU selbst aufspüren soll.
+- [ ] **Beleg-C-Recherche hat keine Tiefen-/Umfangs-Leitplanke.** Der
+      Prompt erlaubt für Beleg C ausdrücklich bereichsübergreifendes
+      Lesen ("Bereichsdisziplin" im LOOP-CONTRACT), aber nicht, wie
+      tief/wie viele Dateien das sein dürfen, bevor es faktisch zu einem
+      zweiten, unkontrollierten Sweep wird. Im Testlauf brauchte die
+      Auflösung von zwei Anfangsverdachten mehrere Leseschritte in
+      `.AI/.MODULES/.CONTROL/controlroom/` (außerhalb des Zielbereichs
+      `_control-center/`). Vorschlag: Hinweis ergänzen wie "Beleg-C-
+      Recherche endet, sobald eine eindeutige Entscheidungs-/Planquelle
+      gefunden ist — nicht das ganze Zielsystem durchsuchen".
+- [ ] **Keine Vorgabe zur Datei-/Claim-Konvention beim Selbst-Anlegen
+      eines SIG-TU-Tickets.** Der Prompt sagt nur "Ticket-Dateien im
+      `tickets_dir`", nicht ob neu erzeugte SIG-TU-Tickets sofort mit
+      Host-Suffix (wie die real beobachtete Praxis in `_TICKETS/`,
+      z.B. `T-20260801-17.WORKSTATION-LG.txt`) oder unclaimed in
+      Root/INBOX abgelegt werden. Im Testlauf wurde die beobachtete
+      Praxis übernommen (`T-20260801-18.ASUS-GEI.txt`), das ist aber
+      Konvention aus Beobachtung, nicht aus dem Prompt selbst — sollte
+      im TICKET-AUSGABEFORMAT-Abschnitt präzisiert werden.
+- [ ] **`lib/ticket_writer.py` existiert nicht**, obwohl `README.md` es
+      als bevorzugten Anlegeweg nennt ("bevorzugt über
+      `lib/ticket_writer.py`"). Der Fail-Safe-Pfad ("Ticket manuell nach
+      Template schreiben") war im Testlauf der einzige gangbare Weg —
+      macht den "bevorzugten Weg" faktisch zum Ausnahmefall. Kein
+      SIG-TU-spezifisches Problem, aber wirkt sich auf jeden SIG-TU-Lauf
+      aus, solange `lib/` fehlt.

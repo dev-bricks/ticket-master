@@ -211,7 +211,13 @@ fallback is **not an error** — it is normal operation.
 ## FAIL-SAFES
 
 - **No area assignable** (none of the four sources) → ASK THE USER; no
-  self-chosen sweep.
+  self-chosen sweep. **Exception — only `*.example.json` exists, no real
+  `config/ticket-writer.config.json`** (the most likely case on a fresh
+  deployment): a self-chosen area analogous to an `areas[]` example entry is
+  then allowed, provided (a) the choice is explicitly labeled a dry
+  run/test run and (b) the area choice and its reasoning appear in the
+  session report. When the role runs in production without a real config
+  (not a test), ASK THE USER still applies.
 - **Store unreachable** → findings without B/C evidence are not ticketed; list
   them as "incomplete (store <name> unreachable)" in the session report.
 - **Active foreign/user lock in the target area** → skip the area, note it in

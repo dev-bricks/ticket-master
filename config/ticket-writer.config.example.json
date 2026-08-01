@@ -22,7 +22,7 @@
     {
       "name": "system-manifest",
       "kind": "file",
-      "target": "<HOME>/SYSTEM-MANIFEST.md"
+      "target": "<HOME>/OneDrive/SYSTEM-MANIFEST.md"
     },
     {
       "name": "control-center-manifest",

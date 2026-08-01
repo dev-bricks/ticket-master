@@ -215,7 +215,13 @@ ist). Der Fallback ist **kein Fehler**, sondern Normalbetrieb.
 ## FAIL-SAFES
 
 - **Kein Bereich zuteilbar** (keine der vier Quellen) → USER FRAGEN; kein
-  Selbstwahl-Sweep.
+  Selbstwahl-Sweep. **Ausnahme — nur `*.example.json` vorhanden, keine echte
+  `config/ticket-writer.config.json`** (in einem frischen Deployment der
+  wahrscheinlichste Fall): dann darf ein Bereich analog zu einem
+  `areas[]`-Beispieleintrag SELBST gewählt werden, wenn (a) die Wahl explizit
+  als Trockenlauf/Testlauf gekennzeichnet wird und (b) Bereichswahl +
+  Begründung im Sessionbericht stehen. Läuft die Rolle NICHT als Test
+  (produktiver Einsatz ohne echte Config), gilt weiterhin USER FRAGEN.
 - **Store unerreichbar** → Funde ohne B-/C-Beleg nicht ticketn; als
   „unvollständig (Store <name> nicht erreichbar)" im Sessionbericht führen.
 - **Aktiver Fremd-/User-Lock im Zielbereich** → Bereich überspringen, im
