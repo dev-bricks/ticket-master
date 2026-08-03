@@ -4,15 +4,15 @@
 
 | Version | Supported |
 |---------|-----------|
-| 1.5.x | Yes |
-| < 1.5 | No |
+| 1.9.x | Yes |
+| < 1.9 | No |
 
 ## Reporting a Vulnerability
 
 If you discover a security vulnerability, please **do not** open a public GitHub
 issue. Instead, report it privately:
 
-1. Open a [GitHub Security Advisory](https://github.com/dev-bricks/ticket-master/security/advisories/new)
+1. Open a [GitHub Security Advisory](https://github.com/ellmos-ai/ticket-master/security/advisories/new)
    in this repository, or
 2. Send a brief description to the maintainer via the contact on
    [github.com/lukisch](https://github.com/lukisch).

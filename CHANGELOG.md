@@ -39,6 +39,9 @@ All notable changes to ticket-master are documented here.
 
 ### Documentation & Maintenance
 
+- Corrected repository URLs and canonical search identifiers from the former
+  `dev-bricks/ticket-master` location to `ellmos-ai/ticket-master`; updated
+  `llms.txt` Last-checked to 2026-08-03.
 - Synchronized `README_de.md` with the canonical English README: restored all
   sections and configuration fields, aligned heading levels and links, and made
   all code and Mermaid blocks byte-identical across both language versions.

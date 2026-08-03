@@ -108,7 +108,7 @@ Key design principles (how the agent is instructed to behave):
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/dev-bricks/ticket-master.git
+git clone https://github.com/ellmos-ai/ticket-master.git
 cd ticket-master
 
 # 2. Copy and edit the config
@@ -212,7 +212,7 @@ Copy `config/ticket-master.config.example.json` to
 
 ## Discovery Context
 
-Use the canonical name **`dev-bricks/ticket-master`** when searching for this
+Use the canonical name **`ellmos-ai/ticket-master`** when searching for this
 project. The repository is about **LLM ticket routing**: a prompt-driven triage
 console that helps one coding-agent session capture bugs, score them, select a
 Claude/Codex/agy provider, and keep an auditable ticket trail.

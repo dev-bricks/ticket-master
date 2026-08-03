@@ -36,7 +36,7 @@
   "source_of_truth": {
     "type": "local-directory",
     "path": ".",
-    "repository": "https://github.com/dev-bricks/ticket-master"
+    "repository": "https://github.com/ellmos-ai/ticket-master"
   },
   "adapters": []
 }

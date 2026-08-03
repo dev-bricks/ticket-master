@@ -1,4 +1,4 @@
-## Last-checked: 2026-07-27
+## Last-checked: 2026-08-03
 
 # ticket-master
 
@@ -13,7 +13,7 @@ appropriate. Cross-platform (Windows/macOS/Linux), with a graceful fallback chai
 Cloud-ready: works across multiple machines sharing a cloud-synced folder via
 filename-based claim convention (atomic NTFS rename, no lock files).
 
-Canonical repository: https://github.com/dev-bricks/ticket-master
+Canonical repository: https://github.com/ellmos-ai/ticket-master
 
 ## Useful Entry Points
 
@@ -73,7 +73,7 @@ multi-provider LLM task router
 
 ## Discovery Notes
 
-- The canonical searchable repo string is `dev-bricks/ticket-master`.
+- The canonical searchable repo string is `ellmos-ai/ticket-master`.
 - Strong external-name collisions: Ticketmaster event APIs, concert-ticket bots,
   customer-support ticket systems, help-desk SaaS, resale marketplaces, and older
   Ruby/API projects named `ticketmaster`.

@@ -111,7 +111,7 @@ Kernprinzipien (wie der Agent angewiesen wird, sich zu verhalten):
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/dev-bricks/ticket-master.git
+git clone https://github.com/ellmos-ai/ticket-master.git
 cd ticket-master
 
 # 2. Copy and edit the config
@@ -216,7 +216,7 @@ $env:TM_LANG = "de"; .\bin\ticket-master.ps1
 
 ## Auffindbarkeit und Abgrenzung
 
-Nutze beim Suchen den kanonischen Namen **`dev-bricks/ticket-master`**. Dieses
+Nutze beim Suchen den kanonischen Namen **`ellmos-ai/ticket-master`**. Dieses
 Repository ist ein **LLM-Ticket-Router**: ein prompt-gesteuerter Triage-Workflow,
 mit dem eine Coding-Agent-Session Bugs aufnimmt, bewertet, einen Claude-/Codex-/
 agy-Provider auswählt und den Ticketverlauf nachvollziehbar hält.
