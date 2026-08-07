@@ -220,7 +220,7 @@ Claude/Codex/agy provider, and keep an auditable ticket trail.
 Good search phrases:
 
 ```text
-dev-bricks ticket-master
+ellmos-ai ticket-master
 LLM ticket router agent
 AI coding agent triage console
 Claude Codex Gemini ticket routing

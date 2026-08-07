@@ -224,7 +224,7 @@ agy-Provider auswählt und den Ticketverlauf nachvollziehbar hält.
 Gute Suchphrasen:
 
 ```text
-dev-bricks ticket-master
+ellmos-ai ticket-master
 LLM ticket router agent
 AI coding agent triage console
 Claude Codex Gemini ticket routing

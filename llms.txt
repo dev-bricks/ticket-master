@@ -1,4 +1,4 @@
-## Last-checked: 2026-08-03
+## Last-checked: 2026-08-07
 
 # ticket-master
 
@@ -59,7 +59,7 @@ cp config/ticket-master.config.example.json config/ticket-master.config.json
 ## Search Phrases
 
 ```
-dev-bricks ticket-master
+ellmos-ai ticket-master
 LLM ticket router agent
 AI coding agent triage console
 multi-provider AI ticket routing

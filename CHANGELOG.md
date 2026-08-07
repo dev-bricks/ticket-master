@@ -39,6 +39,9 @@ All notable changes to ticket-master are documented here.
 
 ### Documentation & Maintenance
 
+- Replaced the legacy `dev-bricks ticket-master` search phrase with the
+  canonical `ellmos-ai ticket-master` identifier in both READMEs and
+  `llms.txt`; refreshed the LLM index check date.
 - Corrected repository URLs and canonical search identifiers from the former
   `dev-bricks/ticket-master` location to `ellmos-ai/ticket-master`; updated
   `llms.txt` Last-checked to 2026-08-03.
