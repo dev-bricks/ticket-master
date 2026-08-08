@@ -25,6 +25,21 @@ that fuzzy pass via `--extra-skills-dir`. `domains.json`'s per-expert
 ticket-master prompt routes directly to the resolved skill(s), it does not
 introduce experts as a separate routing hop.
 
+Stage-0 domain-level matching (T-20260808-02): stages 1 and 2 both compare a
+component against an EXPERT's own name/description, so neither can see a
+skill that supersedes a whole BOSS AGENT instead of any one of its named
+experts (e.g. a "buero" skill covering all four experts of the
+"bueroassistent" boss, none of which is itself named or described as
+"buero"). `match_domain_skill()` runs once per domain, after the per-expert
+loop, using only whole-token equality against the domain's own `id`/`label`
+(never free-text description, never `_compound_overlap()`'s substring
+bridging — see that function's docstring for why both were previously
+walked back). A hit is merged into every expert that does not already carry
+it (never into one with `"status": "portiert"`) as `"match": "domain"`; a
+boss with zero orchestrated experts at all (e.g. `versicherungen`) gets a
+synthetic `"__domain__:<boss>"` pseudo-expert instead, since there is
+otherwise nowhere to attach the match.
+
 This script is a GENERATOR that runs once on the "origin system" (the machine
 that has BACH installed). Its output, `config/domains.json`, is consumed at
 ticket-master runtime and is itself BACH-free — no BACH path or BACH code is
@@ -422,6 +437,69 @@ def fuzzy_match_skills(expert_name: str, boss_description: str, components: list
     return matches
 
 
+def match_domain_skill(domain_id: str, domain_label: str, components: list[dict]) -> list[dict]:
+    """Stage-0 (domain-level) matching, T-20260808-02: covers the case where a
+    standalone skill supersedes an ENTIRE boss agent rather than one of its
+    named sub-experts (e.g. a "buero" skill covering all four experts of the
+    "bueroassistent" boss -- `steuer-agent`, `foerderplaner`,
+    `report_generator`, `worksheet_generator` -- none of which is itself
+    named or described as "buero"). Stage 1 (`match_standalone_skill`) and
+    stage 2 (`fuzzy_match_skills`) both compare a component against an
+    EXPERT's own name/description, so they structurally cannot see this case
+    no matter how complete the registry provenance is -- verified empirically
+    against both the public-catalog and skill-v1 registries (T-20260808-02).
+
+    Deliberately narrower than `fuzzy_match_skills()`: two rules only, both
+    scoped to the component's own `id`/`name` (never free-text description --
+    see T-20260711-05 on why description-scoped token overlap produces false
+    positives), and NEITHER rule uses `_compound_overlap()`'s substring
+    bridging (see T-20260711-04: a length-4 substring bridged the unrelated
+    pair "worksheet_generator"/"genogram-work"). A domain id/label is a much
+    shorter, more generic-looking string than a full expert name, so this
+    stage restricts itself to whole-token equality, the strictest available
+    signal:
+      (a) exact equality: a component's own `name` equals the domain `id`
+          (case-insensitive) -- e.g. skill name "buero" == domain id "buero".
+      (b) whole-token overlap: a token of `domain_id`/`domain_label` (role-
+          suffix stripped via `_GENERIC_EXPERT_NAME_TOKENS`) exactly equals a
+          token of the component's own id/name (same stripping) -- e.g.
+          domain label "Versicherung & Finanzen" contributes the token
+          "versicherung", which equals a token of skill name
+          "finanz-versicherung". No length threshold is applied because this
+          is whole-token equality, not a substring test -- empirically
+          verified against the live 2026-08-08 corpus (122 components) to
+          produce zero incidental hits for the three domains without a
+          whole-domain skill (`alltag`, `content`, `versicherung`'s sibling
+          `gesundheit` produced one additional, correct hit -- see caller).
+    Returns every match (a domain can, in principle, be covered by more than
+    one skill); empty list if none. Callers are responsible for excluding
+    IDs already claimed by stage-1 exact matches (pass the same
+    `fuzzy_pool_available` used for stage 2) so a component is never both
+    a per-expert exact match and a domain-level match at once.
+    """
+    domain_tokens = _tokenize(f"{domain_id} {domain_label}") - _GENERIC_EXPERT_NAME_TOKENS
+    domain_id_lower = domain_id.strip().lower()
+
+    matches: list[dict] = []
+    seen_ids: set[str] = set()
+    for comp in components:
+        comp_id = comp.get("id")
+        if not comp_id or comp_id in seen_ids:
+            continue
+        comp_name = str(comp.get("name", "")).strip().lower()
+        if comp_name and comp_name == domain_id_lower:
+            matches.append(comp)
+            seen_ids.add(comp_id)
+            continue
+        id_name_tokens = _tokenize(
+            " ".join([str(comp.get("id", "")), str(comp.get("name", ""))])
+        ) - _GENERIC_EXPERT_NAME_TOKENS
+        if domain_tokens and id_name_tokens and (domain_tokens & id_name_tokens):
+            matches.append(comp)
+            seen_ids.add(comp_id)
+    return matches
+
+
 def load_extra_skills(extra_skills_dir: Path) -> list[dict]:
     """Loads a second, independent skill inventory (e.g. a Claude Code
     `~/.claude/skills/` tree) for stage-2 fuzzy matching — useful when a
@@ -571,6 +649,42 @@ def build_domains(agents_dir: Path, registry_components_path: Path | None,
                 "match": None,
                 "matched_skills": [],
             })
+
+        # Stage 0 (domain-level, T-20260808-02): a standalone skill can cover
+        # the WHOLE boss agent instead of one of its named experts (see
+        # `match_domain_skill()` docstring). Applied AFTER the per-expert
+        # loop so it only ever adds to an expert, never replaces a stage-1
+        # exact match -- `fuzzy_pool_available` already excludes every ID
+        # claimed by `global_exact_matches`.
+        domain_matches = match_domain_skill(domain_id, label, fuzzy_pool_available)
+        if domain_matches:
+            domain_match_ids = sorted(c["id"] for c in domain_matches)
+            if experts:
+                for expert in experts:
+                    if expert["status"] == "portiert":
+                        continue  # never dilute a verified 1:1 provenance link
+                    merged = sorted(set(expert["matched_skills"]) | set(domain_match_ids))
+                    if merged == expert["matched_skills"]:
+                        continue  # already covers every domain-level skill, nothing to add
+                    expert["matched_skills"] = merged
+                    if expert["status"] == "nicht-portiert":
+                        expert["status"] = "teilportiert"
+                        expert["match"] = "domain"
+            else:
+                # No orchestrated experts at all (e.g. `versicherung`'s boss
+                # lists none) -- there is nowhere to attach the match, so add
+                # a synthetic entry. The `__domain__:` prefix is not a valid
+                # BACH expert-name shape (those come from `orchestrates.
+                # experts` frontmatter, never contain "::" or this prefix),
+                # so it can never collide with or be mistaken for a real
+                # orchestrated expert.
+                experts.append({
+                    "name": f"__domain__:{dirname}",
+                    "standalone_skill": domain_match_ids[0] if len(domain_match_ids) == 1 else None,
+                    "status": "teilportiert",
+                    "match": "domain",
+                    "matched_skills": domain_match_ids,
+                })
 
         domains.append({
             "id": domain_id,

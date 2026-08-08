@@ -16,7 +16,7 @@ multi-provider (Claude Code, Codex, agy/Gemini).
 
 [![Lizenz: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Version](https://img.shields.io/badge/version-1.9.0-blue.svg)](VERSION)
-[![Tests](https://img.shields.io/badge/pytest-56%20passed-brightgreen.svg)](tests/)
+[![Tests](https://img.shields.io/badge/pytest-67%20passed-brightgreen.svg)](tests/)
 [![Python](https://img.shields.io/badge/python-3.10%2B-blue.svg)](pyproject.toml)
 [![LLM-Bereit](https://img.shields.io/badge/LLM--Bereit-llms.txt-blueviolet)](llms.txt)
 [![Provider](https://img.shields.io/badge/provider-Claude%20%7C%20Codex%20%7C%20Gemini-orange)](#starter-matrix)
@@ -362,7 +362,13 @@ Personal-Assistant-Install:
   (`fuzzy_match_skills()`, plus optional `--extra-skills-dir` als zweiter
   Skill-Bestand) zusätzlich Experten, die eine ganze Skill-FAMILIE regieren
   (`"status": "teilportiert"`, `"matched_skills"`: eine Liste) statt eines
-  einzelnen 1:1-portierten Skills. Schema: `config/domains.example.json`.
+  einzelnen 1:1-portierten Skills. Seit T-20260808-02 erkennt ein Stage-0-Durchlauf
+  auf Domänen-Ebene (`match_domain_skill()`) zusätzlich einen Standalone-
+  Skill, der einen GANZEN Boss-Agenten ablöst statt eines seiner benannten
+  Experten (`"match": "domain"`); ein Boss ohne orchestrierte Experten
+  bekommt stattdessen einen synthetischen `"__domain__:<boss>"`-
+  Pseudo-Experten, da es sonst keinen Ort gibt, an dem der Treffer hängen
+  könnte. Schema: `config/domains.example.json`.
 - **Dringlichkeitsachse (1.7.0):** `config/urgency.json` (Schema:
   `config/urgency.example.json`) ordnet jeder Domäne eine Default-Frist zu
   (`sofort` / `heute` / `woche` / `backlog`) plus Eskalationsregeln (z.B.

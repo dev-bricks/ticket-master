@@ -15,7 +15,7 @@ multi-provider (Claude Code, Codex, agy/Gemini).
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Version](https://img.shields.io/badge/version-1.9.0-blue.svg)](VERSION)
-[![Tests](https://img.shields.io/badge/pytest-56%20passed-brightgreen.svg)](tests/)
+[![Tests](https://img.shields.io/badge/pytest-67%20passed-brightgreen.svg)](tests/)
 [![Python](https://img.shields.io/badge/python-3.10%2B-blue.svg)](pyproject.toml)
 [![LLM-Ready](https://img.shields.io/badge/LLM--Ready-llms.txt-blueviolet)](llms.txt)
 [![Providers](https://img.shields.io/badge/providers-Claude%20%7C%20Codex%20%7C%20Gemini-orange)](#starter-matrix)
@@ -355,8 +355,13 @@ assistant triage console, on top of a BACH-style personal-assistant install:
   (`fuzzy_match_skills()`, plus an optional `--extra-skills-dir` second skill
   inventory) additionally recognizes experts that govern a whole skill
   FAMILY (`"status": "teilportiert"`, `"matched_skills"`: a list) rather than
-  a single 1:1 ported skill. See `config/domains.example.json` for the
-  schema.
+  a single 1:1 ported skill. Since T-20260808-02, a stage-0 domain-level pass
+  (`match_domain_skill()`) additionally recognizes a standalone skill that
+  supersedes a WHOLE boss agent rather than any one of its named experts
+  (`"match": "domain"`); a boss with zero orchestrated experts gets a
+  synthetic `"__domain__:<boss>"` pseudo-expert instead, since there is
+  otherwise nowhere to attach the match. See `config/domains.example.json`
+  for the schema.
 - **Urgency axis (1.7.0):** `config/urgency.json` (schema:
   `config/urgency.example.json`) maps each domain to a default deadline
   (`sofort` / `heute` / `woche` / `backlog`) plus escalation rules (e.g.

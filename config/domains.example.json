@@ -43,6 +43,43 @@
           "matched_skills": []
         }
       ]
+    },
+    {
+      "_comment": "Stage 0 (domain-level, T-20260808-02): a standalone skill can supersede a WHOLE boss agent instead of any one of its named experts. Applied to every expert that lacks a stronger match (never overwrites 'status': 'portiert'); 'match': 'domain' marks it distinctly from stage-1 'exact' and stage-2 'fuzzy'.",
+      "id": "example-domain-whole",
+      "label": "Example Domain Covered By One Skill",
+      "source_boss": "example-boss-whole",
+      "description": "Example boss agent whose sub-experts are all covered by a single, more general standalone skill.",
+      "usecases": ["doing thing one", "doing thing two"],
+      "services": [],
+      "experts": [
+        {
+          "_comment": "This expert's own name/description never matched anything in stage 1 or 2, but the domain-level skill covers it too.",
+          "name": "example-sub-expert",
+          "standalone_skill": null,
+          "status": "teilportiert",
+          "match": "domain",
+          "matched_skills": ["skill:example:whole-domain-skill"]
+        }
+      ]
+    },
+    {
+      "_comment": "Stage 0 also covers a boss agent with ZERO orchestrated experts (orchestrates.experts: [] in its own SKILL.md frontmatter) -- there is nowhere to attach a per-expert match, so a synthetic pseudo-expert carries it instead. The '__domain__:' prefix never collides with a real BACH expert name (those come from orchestrates.experts frontmatter, never contain '::' or this prefix).",
+      "id": "example-domain-no-experts",
+      "label": "Example Domain With No Orchestrated Experts",
+      "source_boss": "example-boss-no-experts",
+      "description": "Example boss agent whose frontmatter lists no sub-experts at all.",
+      "usecases": ["Example boss agent whose frontmatter lists no sub-experts at all"],
+      "services": [],
+      "experts": [
+        {
+          "name": "__domain__:example-boss-no-experts",
+          "standalone_skill": "skill:example:whole-domain-skill",
+          "status": "teilportiert",
+          "match": "domain",
+          "matched_skills": ["skill:example:whole-domain-skill"]
+        }
+      ]
     }
   ]
 }

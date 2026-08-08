@@ -765,5 +765,211 @@ class TestLoadCustomComponents(unittest.TestCase):
             self.assertEqual({c["id"] for c in found}, {"skill:b:custom-one", "skill:c:custom-two"})
 
 
+class TestMatchDomainSkill(unittest.TestCase):
+    """T-20260808-02: a standalone skill can cover a whole boss agent rather
+    than any single named expert -- verified against the real 2026-08-08
+    corpus (buero/versicherung) before being reduced to these fixtures."""
+
+    def test_exact_name_equals_domain_id(self):
+        components = [{"id": "claude-skill:buero", "name": "buero"}]
+        matches = dg.match_domain_skill("buero", "Büro, Steuer & Förderung", components)
+        self.assertEqual([c["id"] for c in matches], ["claude-skill:buero"])
+
+    def test_whole_token_overlap_with_domain_label(self):
+        components = [{"id": "claude-skill:finanz-versicherung", "name": "finanz-versicherung"}]
+        matches = dg.match_domain_skill("versicherung", "Versicherung & Finanzen", components)
+        self.assertEqual([c["id"] for c in matches], ["claude-skill:finanz-versicherung"])
+
+    def test_no_match_for_unrelated_component(self):
+        components = [{"id": "claude-skill:textproduction", "name": "textproduction"}]
+        matches = dg.match_domain_skill("buero", "Büro, Steuer & Förderung", components)
+        self.assertEqual(matches, [])
+
+    def test_hyphenated_whole_token_does_match(self):
+        """A hyphen is a token boundary, so "content" inside a hyphenated
+        compound name IS a whole token -- this is the intended, safe case,
+        not the substring-bridging failure mode below."""
+        components = [{"id": "skill:test:content-strategy-toolkit", "name": "content-strategy-toolkit"}]
+        matches = dg.match_domain_skill("content", "Content & Produktion", components)
+        self.assertEqual([c["id"] for c in matches], ["skill:test:content-strategy-toolkit"])
+
+    def test_substring_inside_a_single_word_does_not_false_positive(self):
+        """Regression guard for the T-20260711-04 failure class (a short
+        fragment bridging two unrelated names via substring containment):
+        "content" is a substring of "contentment", but as a WHOLE token
+        "contentment" != "content" -- must not match, unlike the hyphenated
+        case above."""
+        components = [{"id": "skill:test:contentment-tracker", "name": "contentment-tracker"}]
+        matches = dg.match_domain_skill("content", "Content & Produktion", components)
+        self.assertEqual(matches, [], "substring containment must not match, only whole-token equality")
+
+    def test_description_is_never_consulted(self):
+        """T-20260711-05 regression class: matching must stay scoped to a
+        component's own id/name, never its free-text description."""
+        components = [{
+            "id": "skill:test:unrelated", "name": "unrelated-thing",
+            "description": "This tool has nothing to do with buero directly but mentions buero in passing.",
+        }]
+        matches = dg.match_domain_skill("buero", "Büro, Steuer & Förderung", components)
+        self.assertEqual(matches, [])
+
+
+class TestBuildDomainsStage0(unittest.TestCase):
+    """End-to-end coverage for the Stage-0 domain-level wiring inside
+    `build_domains()` (T-20260808-02)."""
+
+    def _boss_with_experts(self, tmp, dirname, expert_names):
+        boss_dir = Path(tmp) / "agents" / dirname
+        boss_dir.mkdir(parents=True)
+        experts_literal = "[" + ", ".join(expert_names) + "]"
+        boss_dir.joinpath("SKILL.md").write_text(f"""---
+name: {dirname}
+orchestrates:
+  experts: {experts_literal}
+  services: []
+description: >
+  Fixture boss agent for domain-level matching tests.
+---
+""", encoding="utf-8")
+        return Path(tmp) / "agents"
+
+    def test_domain_level_skill_covers_all_experts_without_own_match(self):
+        """The buero case: none of the four experts individually names or
+        describes the covering skill, so only Stage 0 can find it."""
+        with tempfile.TemporaryDirectory() as tmp:
+            agents_dir = self._boss_with_experts(
+                tmp, "bueroassistent",
+                ["steuer-agent", "foerderplaner", "report_generator", "worksheet_generator"],
+            )
+            extra_skills_dir = Path(tmp) / "extra-skills"
+            skill_dir = extra_skills_dir / "buero"
+            skill_dir.mkdir(parents=True)
+            skill_dir.joinpath("SKILL.md").write_text("""---
+name: buero
+description: >
+  Ordnet Bueroaufgaben, Korrespondenz und Fristen.
+---
+""", encoding="utf-8")
+
+            result = dg.build_domains(
+                agents_dir, None, extra_boss_dirs=["bueroassistent"],
+                extra_skills_dir=extra_skills_dir,
+            )
+            domain = result["domains"][0]
+            self.assertEqual(domain["id"], "buero")
+            for expert in domain["experts"]:
+                self.assertEqual(expert["status"], "teilportiert", expert["name"])
+                self.assertEqual(expert["match"], "domain", expert["name"])
+                self.assertEqual(expert["matched_skills"], ["claude-skill:buero"], expert["name"])
+
+    def test_domain_with_zero_experts_gets_synthetic_pseudo_expert(self):
+        """The versicherung case: the boss frontmatter lists zero experts, so
+        there is nowhere to attach a per-expert match -- a synthetic
+        `__domain__:<boss>` entry must carry it instead."""
+        with tempfile.TemporaryDirectory() as tmp:
+            agents_dir = self._boss_with_experts(tmp, "versicherungen", [])
+            extra_skills_dir = Path(tmp) / "extra-skills"
+            skill_dir = extra_skills_dir / "finanz-versicherung"
+            skill_dir.mkdir(parents=True)
+            skill_dir.joinpath("SKILL.md").write_text("""---
+name: finanz-versicherung
+description: >
+  Strukturiert Finanz- und Versicherungsunterlagen.
+---
+""", encoding="utf-8")
+
+            result = dg.build_domains(
+                agents_dir, None, extra_boss_dirs=["versicherungen"],
+                extra_skills_dir=extra_skills_dir,
+            )
+            domain = result["domains"][0]
+            self.assertEqual(len(domain["experts"]), 1)
+            pseudo = domain["experts"][0]
+            self.assertEqual(pseudo["name"], "__domain__:versicherungen")
+            self.assertEqual(pseudo["status"], "teilportiert")
+            self.assertEqual(pseudo["match"], "domain")
+            self.assertEqual(pseudo["standalone_skill"], "claude-skill:finanz-versicherung")
+            self.assertEqual(pseudo["matched_skills"], ["claude-skill:finanz-versicherung"])
+
+    def test_stage_1_exact_match_is_never_diluted_by_stage_0(self):
+        """An expert with a verified 1:1 provenance link (stage 1, status
+        "portiert") must be left untouched even if a domain-level skill also
+        exists -- stage 0 may only ever add to weaker (or absent) matches."""
+        with tempfile.TemporaryDirectory() as tmp:
+            agents_dir = self._boss_with_experts(tmp, "bueroassistent", ["steuer-agent"])
+            registry_path = Path(tmp) / "components.json"
+            registry_path.write_text(json.dumps({
+                "components": [
+                    {"id": "skill:test:steuer-agent", "name": "steuer-agent",
+                     "provenance": {"origin": "bach",
+                                    "origin_path": "system/agents/_experts/steuer-agent/CONCEPT.md"}},
+                ]
+            }), encoding="utf-8")
+            extra_skills_dir = Path(tmp) / "extra-skills"
+            skill_dir = extra_skills_dir / "buero"
+            skill_dir.mkdir(parents=True)
+            skill_dir.joinpath("SKILL.md").write_text("""---
+name: buero
+description: >
+  Ordnet Bueroaufgaben, Korrespondenz und Fristen.
+---
+""", encoding="utf-8")
+
+            result = dg.build_domains(
+                agents_dir, registry_path, extra_boss_dirs=["bueroassistent"],
+                extra_skills_dir=extra_skills_dir,
+            )
+            expert = result["domains"][0]["experts"][0]
+            self.assertEqual(expert["status"], "portiert")
+            self.assertEqual(expert["match"], "exact")
+            self.assertEqual(expert["matched_skills"], ["skill:test:steuer-agent"])
+
+    def test_no_domain_level_skill_leaves_experts_unchanged(self):
+        """Regression safety: a domain with no whole-domain skill (like the
+        real 'alltag'/'content' domains) must come out byte-for-byte the same
+        as without Stage 0."""
+        with tempfile.TemporaryDirectory() as tmp:
+            agents_dir = self._boss_with_experts(tmp, "fixture-boss-f", ["some-expert"])
+            result = dg.build_domains(agents_dir, None, extra_boss_dirs=["fixture-boss-f"])
+            expert = result["domains"][0]["experts"][0]
+            self.assertEqual(expert["status"], "nicht-portiert")
+            self.assertIsNone(expert["match"])
+            self.assertEqual(expert["matched_skills"], [])
+
+    def test_existing_expert_level_fuzzy_match_is_not_duplicated(self):
+        """The gesundheit/health_import case, generalised: if an expert
+        ALREADY carries the domain-level skill via its own stage-2 fuzzy
+        match, Stage 0 must be a dedup no-op (no relabel to "domain", no
+        duplicate list entry) -- only an expert that does NOT yet have it
+        should be upgraded."""
+        with tempfile.TemporaryDirectory() as tmp:
+            agents_dir = self._boss_with_experts(
+                tmp, "gesundheitsassistent", ["gesundheitsverwalter", "health_import"],
+            )
+            extra_skills_dir = Path(tmp) / "extra-skills"
+            skill_dir = extra_skills_dir / "gesundheit"
+            skill_dir.mkdir(parents=True)
+            skill_dir.joinpath("SKILL.md").write_text("""---
+name: gesundheit
+description: >
+  Verwaltet Medikamentenplaene und Arztberichte.
+---
+""", encoding="utf-8")
+
+            result = dg.build_domains(
+                agents_dir, None, extra_boss_dirs=["gesundheitsassistent"],
+                extra_skills_dir=extra_skills_dir,
+            )
+            experts_by_name = {e["name"]: e for e in result["domains"][0]["experts"]}
+            # "gesundheitsverwalter" already whole-token-overlaps "gesundheit"
+            # via its own stage-2 fuzzy match -- Stage 0 must not relabel it.
+            self.assertEqual(experts_by_name["gesundheitsverwalter"]["match"], "fuzzy")
+            self.assertEqual(experts_by_name["gesundheitsverwalter"]["matched_skills"], ["claude-skill:gesundheit"])
+            # "health_import" has no expert-level match at all -- Stage 0 is
+            # the only thing that can cover it.
+            self.assertEqual(experts_by_name["health_import"]["match"], "domain")
+            self.assertEqual(experts_by_name["health_import"]["matched_skills"], ["claude-skill:gesundheit"])
+
+
 if __name__ == "__main__":
     unittest.main()

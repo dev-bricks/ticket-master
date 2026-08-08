@@ -6,6 +6,29 @@ All notable changes to ticket-master are documented here.
 
 ### Added
 
+- **Stage-0 domain-level skill matching in `lib/domains_generator.py`
+  (T-20260808-02).** Stages 1 (exact provenance) and 2 (fuzzy keyword/token)
+  both compare a component against an EXPERT's own name/description, so
+  neither can see a standalone skill that supersedes a WHOLE boss agent
+  instead of any one of its named experts (empirically observed: a `buero`
+  skill covering all four experts of the `bueroassistent` boss, and a
+  `finanz-versicherung` skill covering the `versicherungen` boss, which
+  orchestrates zero named experts at all). `match_domain_skill()` adds a
+  third pass, restricted to whole-token equality against the domain's own
+  `id`/`label` (never free-text description, never substring bridging — see
+  the T-20260711-04/-05 regressions this deliberately avoids repeating),
+  merged into every expert that lacks a stronger match as `"match":
+  "domain"`; a boss with zero orchestrated experts gets a synthetic
+  `"__domain__:<boss>"` pseudo-expert instead. Verified against the real
+  2026-08-08 corpus: `buero`'s four experts and `versicherung`'s pseudo-expert
+  now correctly carry their standalone skills, `gesundheit`'s `health_import`
+  gains `claude-skill:gesundheit` as a side effect, and a full diff across
+  all five live domains shows zero regressions (no expert lost a match, no
+  `"status": "portiert"` expert was touched). 11 new tests in
+  `tests/test_domains_generator.py`; `config/domains.example.json`
+  documents the new shape. Root-cause note: this closes Befund B of
+  T-20260808-02; Befund A (which of two colliding skill-registry schemas is
+  canonical) remains an open decision, not implemented here.
 - **New role TICKET-WRITER (SIG-TU — System Integrity Guardian with Ticket and
   USMC adapter), T-20260731-20.** Loop-based, read-only integrity sweeps: one
   externally assigned area per run (loop contract with explicit assignment,
