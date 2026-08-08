@@ -212,6 +212,18 @@ $env:TM_LANG = "de"; .\bin\ticket-master.ps1
 }
 ```
 
+### Multi-Host-Configs: Platzhalter `<HOME>`/`<USER>`
+
+Liegt `config/ticket-master.config.json` in einem Ordner, der über mehrere
+Maschinen synchronisiert wird, löst sich ein wörtlicher Pfad nur auf dem
+Host auf, auf dem er geschrieben wurde. `tickets_dir` und jeder
+`project_roots[].path` dürfen stattdessen die Platzhalter `<HOME>`
+(Home-Verzeichnis des aktuellen Users) und `<USER>` (OS-Username) nutzen —
+der Agent, der dem TICKET-MASTER-Prompt folgt, löst diese vor jedem
+Datei-Zugriff auf den tatsächlichen Wert des aktuellen Hosts auf. Dieselbe
+Konvention wie in `config/ticket-writer.config.example.json`. Beispiel in
+`config/ticket-master.config.example.json`.
+
 ---
 
 ## Auffindbarkeit und Abgrenzung

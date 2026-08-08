@@ -481,3 +481,17 @@ Zusätzlich (beide optional, siehe (c2)): `config/domains.json` (Domänen→
 Endpunkt-Map, generiert von `lib/domains_generator.py`) und
 `config/urgency.json` (Domäne→Frist-Default-Matrix + Eskalationsregeln,
 Schema in `config/urgency.example.json`).
+
+**Hostneutrale Pfade (Platzhalter `<HOME>`/`<USER>`):** Liegt
+`config/ticket-master.config.json` in einem Ordner, der über mehrere
+Maschinen synchronisiert wird (z. B. ein cloud-synchronisierter
+Elternordner), löst sich ein wörtlicher, hostspezifischer absoluter Pfad nur
+auf der Maschine auf, auf der er geschrieben wurde. Jeder `tickets_dir`- oder
+`project_roots[].path`-Wert darf stattdessen die Platzhalter `<HOME>`
+(Home-Verzeichnis des aktuellen Users) und `<USER>` (OS-Username) nutzen —
+dieselbe Konvention, die bereits in
+`config/ticket-writer.config.example.json` verwendet wird. Ersetze den
+Platzhalter VOR jedem Datei-Zugriff durch den tatsächlichen Wert für den
+Host, auf dem du gerade läufst (z. B. das Windows-Benutzerprofilverzeichnis,
+`$HOME` unter Unix) — übergib niemals die wörtliche Platzhalter-Zeichenkette
+an ein Datei-Werkzeug.

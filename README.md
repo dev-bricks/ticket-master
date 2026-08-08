@@ -208,6 +208,17 @@ Copy `config/ticket-master.config.example.json` to
 }
 ```
 
+### Multi-Host Configs: `<HOME>`/`<USER>` Placeholders
+
+If `config/ticket-master.config.json` lives in a folder synced across
+several machines, a literal path only resolves on the host it was written
+on. `tickets_dir` and any `project_roots[].path` may instead use the
+placeholders `<HOME>` (current user's home directory) and `<USER>` (OS user
+name) — the agent following the TICKET-MASTER prompt resolves these to the
+current host's actual values before any file access. Same convention as
+`config/ticket-writer.config.example.json`. See
+`config/ticket-master.config.example.json` for a worked example.
+
 ---
 
 ## Discovery Context

@@ -1,5 +1,6 @@
 {
   "_comment": "Copy this file to ticket-master.config.json and fill in your own values.",
+  "_comment_placeholders": "Optional: if this config lives in a folder synced across several machines (e.g. a cloud-synced parent directory), 'tickets_dir' and any project_roots[].path may use the placeholders <HOME> (current user's home directory) and <USER> (OS user name) instead of a literal, host-specific path -- same convention as config/ticket-writer.config.example.json. The agent following the TICKET-MASTER prompt resolves these to the current host's actual values before any file access; a literal path is still fine for a single-machine setup.",
   "tickets_dir": "./tickets",
   "prompts_dir": "./prompts",
   "_comment_language": "Prompt language. The bin/ starters load prompts/TICKET-MASTER.<lang>.md. Override at runtime with the TM_LANG environment variable. Falls back to 'en' if the requested file is missing.",
@@ -20,6 +21,12 @@
       "name": "my-docs",
       "path": "/path/to/my-docs",
       "pipeline": "docs"
+    },
+    {
+      "_comment": "Multi-host example: <HOME> resolves per-host (see _comment_placeholders above).",
+      "name": "my-shared-project",
+      "path": "<HOME>/OneDrive/projects/my-shared-project",
+      "pipeline": "software"
     }
   ],
   "providers": {

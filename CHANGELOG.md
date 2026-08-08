@@ -17,6 +17,16 @@ All notable changes to ticket-master are documented here.
   ticket when nothing is found — session report only). Ships as
   `prompts/TICKET-WRITER.de.md` + `prompts/TICKET-WRITER.en.md` with
   `config/ticket-writer.config.example.json`.
+- **`<HOME>`/`<USER>` placeholder convention for `ticket-master.config.json`
+  (T-20260808-01).** `tickets_dir` and `project_roots[].path` may now use
+  `<HOME>` (current user's home directory) and `<USER>` (OS user name)
+  instead of a literal, host-specific path — the convention already
+  established in `config/ticket-writer.config.example.json`. Needed once a
+  config lives in a folder synced across several machines, where a literal
+  path only resolves on the host it was written on. Documented in
+  `prompts/TICKET-MASTER.de.md` / `.en.md` (agent substitutes the placeholder
+  before any file access), `config/ticket-master.config.example.json` (new
+  worked example) and both READMEs.
 - **Category system v1 (T-20260731-22).** The flat lifecycle
   `ROOT | QUEUED | PENDING | .USER | SOLVED` is superseded by eight clusters
   with subcategories, explicit entry/exit rules and an autonomy loop —
