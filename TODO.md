@@ -232,3 +232,24 @@
       macht den "bevorzugten Weg" faktisch zum Ausnahmefall. Kein
       SIG-TU-spezifisches Problem, aber wirkt sich auf jeden SIG-TU-Lauf
       aus, solange `lib/` fehlt.
+
+## TASKWRITER-Recheck 2026-08-02
+
+Live-Baseline des kanonischen Clones: `main`, HEAD/origin
+`51f370f`; Arbeitsbaum vor diesem Writeback sauber und synchron; keine
+`LOCK.user*.txt`- oder echten `*WORKSTATION-LG*`-Treffer. TASKPLAN enthielt vor
+dem Lauf keine Aufgaben für diesen Projektpfad.
+
+Persistierte TASKPLAN-Aufgaben:
+
+- `1914` — `prompts_dir` in allen Startern wirksam machen oder konsistent entfernen (high/medium/local).
+- `1915` — Usecase-Level-Matching im Domains-Generator ergänzen (high/large/local).
+- `1916` — Plattformneutrale CLI-Schicht mit Konfigurationsvalidierung bauen (high/large/local).
+- `1917` — `--list` und `--intake` als auditable CLI-Funktionen ergänzen (medium/medium/local).
+- `1918` — Prompt- und Dokumentationssprache über DE/EN hinaus erweitern (low/large/local).
+- `1919` — `llms.txt`, Testbadge und Release-/Unreleased-Nachweis synchronisieren (high/medium/local).
+
+Die vollständigen Quellen, Soll/Ist-Ableitungen, Definition-of-Done, Prüfwege
+und Blocker liegen im TASKPLAN-Register. Keine dieser Aufgaben wurde in diesem
+TASKWRITER-Lauf ausgeführt; insbesondere kein Test, Build, CLI-Start, Ticket-
+Write, Commit oder Push.
