@@ -87,24 +87,51 @@ LOESUNG / ERGEBNIS
 # (Flachmodell vor v1) in der Liste, damit Alt-Bestaende weiter mitzaehlen;
 # PENDING-Eingaenge werden bei der Instanz-Migration auf ACTIONABLE/USER/
 # BLOCKED/WAITING/PARKED verteilt, .USER wird durch USER abgeloest.
+#
+# PFLICHT (T-20260808-03): jede deployte Kopie dieser Datei (Modul-Spiegel UND
+# die _scripts/-Laufinstanz) MUSS dieselbe Liste tragen. Eine veraltete Kopie
+# ohne die Kategorien-v1-Ordner sieht Tickets in ACTIONABLE/BLOCKED/WAITING/
+# USER/PARKED nicht und kann eine bereits vergebene Nummer erneut ausgeben —
+# genau das war am 2026-08-08 ein Mitverursacher der ID-Kollision, die zu
+# diesem Ticket fuehrte.
 _LIFECYCLE_SUBDIRS = ("", "INBOX", "ACTIONABLE", "QUEUED", "BLOCKED", "WAITING",
                       "USER", "PARKED", "SOLVED", "PENDING", ".USER")
+
+# Ticket-Dateiname: T-<8-stelliges Datum>-<laufende Nummer>[.<HOST-oder-Suffix>].txt
+# Eine Gruppe fuer Datum, eine fuer die Nummer, eine optionale fuer den Claim-/
+# Konflikt-Suffix. Von _next_number UND vom Audit (lib/ticket_audit.py) genutzt,
+# damit beide garantiert dieselbe Grammatik sehen und nicht auseinanderlaufen.
+TICKET_FILENAME_RE = re.compile(r"^T-(\d{8})-(\d+)(?:\.([A-Za-z0-9_-]+))?\.txt$")
+
+
+def iter_lifecycle_files(base: Path):
+    """Iteriert alle ticketfoermigen Dateien in JEDEM Lebenszyklus-Ordner.
+
+    Liefert (pfad, datestr, nummer, suffix_oder_None) je Treffer. Suffix ist
+    der Host-/Konfliktanteil vor ".txt" (z. B. "WORKSTATION-LG" bei
+    "T-20260808-03.WORKSTATION-LG.txt"), None bei unclaimed Tickets.
+    """
+    for sub in _LIFECYCLE_SUBDIRS:
+        directory = base / sub if sub else base
+        if not directory.is_dir():
+            continue
+        for entry in directory.iterdir():
+            if not entry.is_file():
+                continue
+            m = TICKET_FILENAME_RE.match(entry.name)
+            if m:
+                datestr, number, suffix = m.group(1), int(m.group(2)), m.group(3)
+                yield entry, datestr, number, suffix
 
 
 def _next_number(base: Path, datestr: str) -> int:
     """Naechste freie laufende Nummer fuer ein Datum (beruecksichtigt claimed
     Tickets T-DATE-NN.<HOST>.txt und unclaimed T-DATE-NN.txt ueber alle
     Lebenszyklus-Ordner)."""
-    pattern = re.compile(rf"^T-{datestr}-(\d+)(?:\.[A-Za-z0-9_-]+)?\.txt$")
     highest = 0
-    for sub in _LIFECYCLE_SUBDIRS:
-        directory = base / sub if sub else base
-        if not directory.is_dir():
-            continue
-        for entry in directory.iterdir():
-            m = pattern.match(entry.name)
-            if m:
-                highest = max(highest, int(m.group(1)))
+    for _path, entry_date, number, _suffix in iter_lifecycle_files(base):
+        if entry_date == datestr:
+            highest = max(highest, number)
     return highest + 1
 
 
@@ -143,3 +170,40 @@ def create(title: str, body: str, project: str | None = None, priority: str = "m
             number += 1
             continue
         return str(target)
+
+
+def _cli(argv: list[str] | None = None) -> int:
+    """CLI so any agent gets a collision-free ID in one shell call instead of
+    picking the next number by eye (T-20260808-03: exactly that manual
+    picking, bypassing this module's atomic exclusive-create, produced a
+    same-minute collision between two agents on one host)."""
+    import argparse
+
+    parser = argparse.ArgumentParser(
+        prog="ticket_writer",
+        description="Atomically create an unclaimed ticket (T-YYYYMMDD-NN.txt in QUEUED/).",
+    )
+    parser.add_argument("--title", required=True)
+    parser.add_argument("--body", default="")
+    parser.add_argument("--project", default=None)
+    parser.add_argument("--priority", default="mittel")
+    parser.add_argument("--pipeline", default="<offen>")
+    parser.add_argument("--tickets-dir", default=None)
+    args = parser.parse_args(argv)
+    try:
+        path = create(
+            args.title, args.body, project=args.project, priority=args.priority,
+            pipeline=args.pipeline,
+            tickets_dir=Path(args.tickets_dir) if args.tickets_dir else None,
+        )
+    except ValueError as exc:
+        print(f"ERROR: {exc}")
+        return 1
+    print(path)
+    return 0
+
+
+if __name__ == "__main__":
+    import sys
+
+    raise SystemExit(_cli(sys.argv[1:]))

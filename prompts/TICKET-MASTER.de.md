@@ -99,6 +99,19 @@ Ein Rename im selben Verzeichnis ist auf NTFS/Cloud-Sync atomar. Wenn eine
 Konfliktkopie entsteht, hat ein System den Claim gewonnen; das andere muss
 zurückrollen und das nächste unclaimed Ticket nehmen.
 
+**PFLICHT (seit T-20260808-03): niemals von Hand kopieren/überschreiben.**
+Ein Ticket zwischen Lebenszyklus-Ordnern verschieben (z. B. nach `SOLVED/`)
+NIE per Lesen+Schreiben oder generischem `mv`, sondern über
+`lib/ticket_mover.py move_ticket()` (bzw. `python lib/ticket_mover.py <quelle>
+<zielordner>`). Das schlägt fehl, wenn im Ziel bereits eine gleichnamige
+Datei liegt, statt sie stillschweigend zu überschreiben — genau das
+Gegenteil dessen, was am 2026-08-08 einen bereits gelösten Vorgang
+zerstörte. Ebenso: eine NEUE Ticket-ID nie durch Hinsehen/Zählen vergeben,
+sondern über `lib/ticket_writer.py create()` (bzw. `python
+lib/ticket_writer.py --title ... --body ...`) — das legt die Datei atomar
+exklusiv an und zählt bei einer Kollision automatisch hoch, statt zwei
+Agenten dieselbe Nummer ziehen zu lassen.
+
 ---
 
 ## LOGGING (Audit ohne Datei-Zeremonie)

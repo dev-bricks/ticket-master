@@ -6,6 +6,36 @@ All notable changes to ticket-master are documented here.
 
 ### Added
 
+- **Fail-closed ticket move + collision audit (T-20260808-03).** No code path
+  existed for moving a ticket between lifecycle folders; moves happened by
+  hand, and on 2026-08-08 that silently overwrote a ticket that had lived in
+  `SOLVED/` since 2026-08-01 — the write looked normal on readback, the loss
+  was only caught because a folder's file count didn't grow. `lib/ticket_mover.py`
+  adds `move_ticket()`: atomic exclusive-create (`O_EXCL`) of the destination,
+  so a same-named file there is refused rather than overwritten, with a
+  compare-before-delete readback of both source and destination before the
+  source is removed. Verified empirically (unit test + a live CLI run): a
+  move onto an occupied target fails and leaves both files byte-identical to
+  before. `lib/ticket_writer.py` gained a matching CLI (`--title/--body/...`)
+  so a fresh ID no longer has to be picked by eyeballing the directory — the
+  same manual picking, bypassing this module's existing atomic
+  exclusive-create, produced the same-minute ID collision between two agents
+  on one host that led to this ticket in the first place. `lib/ticket_audit.py`
+  is a new read-only health check reproducing the ticket's own 231-ID sweep:
+  live ID collisions, claimed tickets sitting in the root/INBOX alias
+  (invisible to every status-folder-based triage — one such ticket carried
+  same-day urgency and sat unworked for seven days), and non-ticket files in
+  the tree. Tuned against the real bestand: an initial version flagged ~100
+  legitimate legacy tickets (`T-YYYYMMDD-NN_slug.txt`, pre-dating the current
+  bare-ID convention) as false-positive clutter, which would have buried the
+  one real find; a broader "looks like a ticket" pattern for the clutter scan
+  (kept separate from the strict ID-extraction pattern used for collision
+  detection) cut that to 18 genuine anomalies. 26 new tests, including the
+  two known production collisions (`T-20260731-02`, `T-20260731-03`)
+  reproduced as fixtures. The two existing collisions are NOT renumbered by
+  this change — both filenames are externally referenced from other tickets,
+  and choosing which reference chain to preserve is a user decision, not an
+  automated one.
 - **Stage-0 domain-level skill matching in `lib/domains_generator.py`
   (T-20260808-02).** Stages 1 (exact provenance) and 2 (fuzzy keyword/token)
   both compare a component against an EXPERT's own name/description, so

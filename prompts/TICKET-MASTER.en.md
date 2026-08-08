@@ -94,6 +94,18 @@ A rename within the same directory is atomic on NTFS/cloud-sync. If a conflict
 copy appears, one system has won the claim; the other must roll back and pick
 the next unclaimed ticket.
 
+**REQUIRED (since T-20260808-03): never hand-copy or hand-overwrite.**
+Moving a ticket between lifecycle folders (e.g. into `SOLVED/`) must never be
+done via read+write or a generic `mv`, only through `lib/ticket_mover.py
+move_ticket()` (or `python lib/ticket_mover.py <source> <dest_dir>`). It
+fails if the destination already holds a same-named file instead of
+silently overwriting it — exactly the opposite of what destroyed an
+already-solved ticket on 2026-08-08. Likewise, never assign a NEW ticket ID
+by eyeballing/counting the directory; use `lib/ticket_writer.py create()`
+(or `python lib/ticket_writer.py --title ... --body ...`), which creates the
+file via atomic exclusive-create and auto-increments on collision instead of
+letting two agents pick the same number.
+
 ---
 
 ## LOGGING (audit without file ceremony)

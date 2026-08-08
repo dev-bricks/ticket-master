@@ -74,6 +74,28 @@ class TestTicketWriter(unittest.TestCase):
             self.assertEqual(Path(path).name, "T-20260627-02.txt")
             self.assertEqual(first.read_text(encoding="utf-8"), "ORIGINAL")
 
+    def test_cli_creates_ticket(self):
+        """T-20260808-03 Punkt 2: die Vergabesperre nuetzt nur, wenn sie
+        bequemer ist als von Hand zaehlen. Ein Shell-Einzeiler ist das."""
+        with tempfile.TemporaryDirectory() as tmp:
+            exit_code = ticket_writer._cli([
+                "--title", "CLI-Titel", "--body", "CLI-Body",
+                "--tickets-dir", tmp,
+            ])
+            self.assertEqual(exit_code, 0)
+            created = list((Path(tmp) / "QUEUED").glob("T-*.txt"))
+            self.assertEqual(len(created), 1)
+            self.assertIn("CLI-Titel", created[0].read_text(encoding="utf-8"))
+
+    def test_cli_requires_tickets_dir(self):
+        import os
+        from unittest.mock import patch
+
+        with patch.dict(os.environ, {}, clear=False):
+            os.environ.pop("TICKET_MASTER_TICKETS_DIR", None)
+            exit_code = ticket_writer._cli(["--title", "x"])
+        self.assertEqual(exit_code, 1)
+
 
 class TestDocScanner(unittest.TestCase):
     def test_scan_and_ensure(self):
