@@ -492,6 +492,7 @@ auf der Maschine auf, auf der er geschrieben wurde. Jeder `tickets_dir`- oder
 dieselbe Konvention, die bereits in
 `config/ticket-writer.config.example.json` verwendet wird. Ersetze den
 Platzhalter VOR jedem Datei-Zugriff durch den tatsächlichen Wert für den
-Host, auf dem du gerade läufst (z. B. das Windows-Benutzerprofilverzeichnis,
-`$HOME` unter Unix) — übergib niemals die wörtliche Platzhalter-Zeichenkette
-an ein Datei-Werkzeug.
+Host, auf dem du gerade läufst — löse `<HOME>` unter Windows über die
+Umgebungsvariable `%USERPROFILE%` auf, unter Unix über `$HOME`; `<USER>`
+entsprechend über `%USERNAME%` bzw. `$USER`. Übergib niemals die wörtliche
+Platzhalter-Zeichenkette an ein Datei-Werkzeug.

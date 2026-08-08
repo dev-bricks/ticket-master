@@ -472,5 +472,7 @@ placeholders `<HOME>` (current user's home directory) and `<USER>` (OS user
 name) — the same convention already used in
 `config/ticket-writer.config.example.json`. Before reading or writing any
 such path, substitute the placeholder with the actual value for the host you
-are running on (e.g. the Windows user profile directory, or `$HOME` on
-Unix) — do not pass the literal placeholder string to a file tool.
+are running on — resolve `<HOME>` via the `%USERPROFILE%` environment
+variable on Windows or `$HOME` on Unix, and `<USER>` via `%USERNAME%` /
+`$USER` respectively. Do not pass the literal placeholder string to a file
+tool.
